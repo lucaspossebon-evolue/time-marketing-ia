@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Time de Marketing IA · do grupo Evolue</title>
+<meta name="description" content="Um time de agentes de IA que cria o Instagram da sua empresa toda semana: carrosséis, stories, datas do setor e vídeos. Você só aprova pelo celular.">
+<link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAYFBMVEULEiACBhT9/f2RlJrU1dgJEB7n5+lnanMlKjalp6y0tboyN0NHS1VQVF54e4MaIS5WWWPJys2Eh44sMj6ZnKI+QUx+gYm9vsJdYWtydXzc3eAAAAAAAAAAAAAAAAAAAAD/Q4LlAAAAIHRSTlP+/f3z9v339Pb09ff09fT29vT09/P18/X18/cAAAAAABWJ9OQAAAESSURBVHjazVPbdoQgDGQId1FR99L2/z+0JKxbae0+bx4kJzMkQxKVekeD2As4+Euk0ULZUzxELbYEqJM88Ho3o7Dl3wx8NiyZ+v2A02PPwMhwulrgrvUFyQ0dAcpVfOLKIK0jn32CqeKrxJDYQ146iq2VTcNDpWZgoONbMdSobwRqVMzzIQNKJYgq5OoVJpTjM7gHjm8guCaxhqYTguBGioPWIyFLCWTBm5Z7l2EWkcS9euBz30rUObmvvVftMcy0eJhaudMubnjWZKlWjWUs/haXNkXar7OYIP51orQYsyTyPMU4SL5Ae9ueJThqZFnoRkm0/F0YdfnZmHK2mLYOiLO45BX+21obho2P14v/Vn/iN4oeB7nABxrgAAAAAElFTkSuQmCC">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0b1220; --bg2:#111a2e; --card:#16213a; --line:#24314f;
+  --tx:#eef2fb; --tx2:#a8b3cc; --ac:#3d8bff; --ac2:#22d3ee; --ok:#22c55e;
+  --r:16px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:Poppins,system-ui,sans-serif;background:var(--bg);color:var(--tx);line-height:1.55;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px}
+header{position:sticky;top:0;z-index:5;background:rgba(11,18,32,.85);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+header .wrap{display:flex;align-items:center;justify-content:space-between;height:60px}
+.logo{font-weight:700;font-size:16px;letter-spacing:.2px}
+.logo small{display:flex;align-items:center;gap:6px;font-weight:400;font-size:11px;color:var(--tx2);margin-top:1px}
+.logo-ev{height:17px;width:auto;display:block}
+.logo-rod{height:40px;width:auto;margin-bottom:14px;opacity:.95}
+.btn{display:inline-flex;align-items:center;gap:8px;border:0;cursor:pointer;font:600 15px Poppins,sans-serif;border-radius:999px;padding:13px 22px;background:linear-gradient(135deg,var(--ac),#6a5cff);color:#fff;text-decoration:none;box-shadow:0 8px 24px rgba(61,139,255,.3)}
+.btn.sec{background:transparent;border:1px solid var(--line);box-shadow:none;color:var(--tx)}
+.btn.sm{padding:9px 16px;font-size:13px}
+.hero{padding:64px 0 40px;background:radial-gradient(800px 400px at 80% -10%,rgba(61,139,255,.25),transparent),radial-gradient(600px 300px at 0% 10%,rgba(34,211,238,.12),transparent)}
+.tag{display:inline-block;font-size:12px;font-weight:600;color:var(--ac2);border:1px solid rgba(34,211,238,.35);padding:5px 12px;border-radius:999px;margin-bottom:18px}
+h1{font-size:clamp(30px,5.4vw,52px);line-height:1.12;font-weight:700;max-width:820px}
+h1 em{font-style:normal;background:linear-gradient(90deg,var(--ac),var(--ac2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.lead{font-size:clamp(16px,2.2vw,19px);color:var(--tx2);max-width:660px;margin:18px 0 28px}
+.ctas{display:flex;flex-wrap:wrap;gap:12px}
+.prova{margin-top:28px;font-size:13px;color:var(--tx2)}
+section{padding:56px 0}
+h2{font-size:clamp(24px,3.6vw,34px);font-weight:700;margin-bottom:10px}
+.sub{color:var(--tx2);margin-bottom:28px;max-width:640px}
+.grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:20px}
+.card h3{font-size:16px;margin:8px 0 6px}
+.card p{font-size:14px;color:var(--tx2)}
+.ico{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;background:rgba(61,139,255,.15);font-size:19px}
+.passos{counter-reset:p}
+.passos .card{position:relative;padding-top:46px}
+.passos .card::before{counter-increment:p;content:counter(p);position:absolute;top:16px;left:20px;width:24px;height:24px;border-radius:50%;background:var(--ac);font-size:13px;font-weight:700;display:grid;place-items:center}
+.pac .card{display:flex;flex-direction:column}
+.pac .card.dest{border-color:var(--ac);box-shadow:0 0 0 1px var(--ac),0 12px 40px rgba(61,139,255,.2)}
+.pac .preco{font-size:13px;color:var(--tx2);margin:10px 0 2px}
+.pac .preco b{display:block;font-size:26px;color:var(--tx)}
+.pac ul{list-style:none;margin:14px 0 18px;font-size:14px;color:var(--tx2)}
+.pac li{padding:5px 0 5px 22px;position:relative}
+.pac li::before{content:"✓";position:absolute;left:0;color:var(--ok);font-weight:700}
+.pac .btn{margin-top:auto;justify-content:center}
+.nota{font-size:12.5px;color:var(--tx2);margin-top:16px}
+.faq details{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 18px;margin-bottom:10px}
+.faq summary{cursor:pointer;font-weight:600;font-size:15px}
+.faq p{color:var(--tx2);font-size:14px;margin-top:8px}
+footer{border-top:1px solid var(--line);padding:28px 0 100px;color:var(--tx2);font-size:13px}
+
+/* chat */
+.fab{position:fixed;right:18px;bottom:18px;z-index:20}
+.fab .btn{padding:14px 20px}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 3px rgba(34,197,94,.25)}
+.chat{position:fixed;right:18px;bottom:18px;width:380px;height:min(620px,calc(100vh - 36px));z-index:30;background:var(--bg2);border:1px solid var(--line);border-radius:20px;display:none;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.chat.on{display:flex}
+@media(max-width:520px){.chat{right:0;bottom:0;width:100%;height:100%;border-radius:0;border:0}}
+.chat-top{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--card)}
+.av{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--ac),var(--ac2));display:grid;place-items:center;font-weight:700}
+.chat-top b{font-size:15px}
+.chat-top small{display:flex;align-items:center;gap:6px;color:var(--tx2);font-size:12px}
+.x{margin-left:auto;background:none;border:0;color:var(--tx2);font-size:24px;cursor:pointer;line-height:1}
+.msgs{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px}
+.m{max-width:85%;padding:10px 14px;border-radius:16px;font-size:14.5px;white-space:pre-wrap;word-wrap:break-word}
+.m.v{background:var(--card);border:1px solid var(--line);border-bottom-left-radius:4px;align-self:flex-start}
+.m.l{background:var(--ac);color:#fff;border-bottom-right-radius:4px;align-self:flex-end}
+.m.aviso{align-self:center;background:none;color:var(--tx2);font-size:12px;text-align:center;padding:4px}
+.digit{display:inline-flex;gap:4px}
+.digit i{width:7px;height:7px;border-radius:50%;background:var(--tx2);animation:b 1.2s infinite}
+.digit i:nth-child(2){animation-delay:.15s}.digit i:nth-child(3){animation-delay:.3s}
+@keyframes b{0%,60%,100%{opacity:.3;transform:translateY(0)}30%{opacity:1;transform:translateY(-3px)}}
+.rap{display:flex;flex-wrap:wrap;gap:8px;padding:0 16px 10px}
+.rap button{background:transparent;border:1px solid var(--ac);color:var(--tx);border-radius:999px;padding:7px 13px;font:500 13px Poppins,sans-serif;cursor:pointer}
+.envio{display:flex;gap:8px;padding:12px;border-top:1px solid var(--line)}
+.envio textarea{flex:1;resize:none;height:44px;max-height:110px;background:var(--card);border:1px solid var(--line);border-radius:12px;color:var(--tx);font:14.5px Poppins,sans-serif;padding:11px 12px}
+.envio textarea:focus{outline:2px solid var(--ac);border-color:transparent}
+.envio button{width:44px;height:44px;border-radius:12px;border:0;background:var(--ac);color:#fff;font-size:18px;cursor:pointer}
+.envio button:disabled{opacity:.4}
+.lgpd{font-size:10.5px;color:var(--tx2);text-align:center;padding:0 12px 10px}
+</style>
+</head>
+<body>
+
+<header><div class="wrap">
+  <div class="logo">Time de Marketing IA<small>do grupo <img class="logo-ev" src="data:image/png;base64,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" alt="Evolue Treinamento e Desenvolvimento"></small></div>
+  <button class="btn sm" data-abrir>Falar com a Lia</button>
+</div></header>
+
+<div class="hero"><div class="wrap">
+  <span class="tag">Fase piloto · vagas limitadas</span>
+  <h1>Seu Instagram produzido toda semana por um <em>time de agentes de IA</em>. Você só aprova pelo celular.</h1>
+  <p class="lead">Pautas, carrosséis, stories, datas do seu setor e vídeos — até com o seu avatar falando por você. Conteúdo com a cara da sua empresa, sem precisar montar uma equipe de marketing.</p>
+  <div class="ctas">
+    <button class="btn" data-abrir>Conversar agora <span>→</span></button>
+    <a class="btn sec" href="#pacotes">Ver pacotes</a>
+  </div>
+  <p class="prova">Nasceu dentro da Evolue: é o sistema que produz o Instagram da própria consultoria hoje.</p>
+</div></div>
+
+<section id="agentes"><div class="wrap">
+  <h2>Um time completo, trabalhando todo dia</h2>
+  <p class="sub">Cada agente tem uma função. Juntos, cobrem o que uma agência faria — no ritmo certo para a sua empresa.</p>
+  <div class="grid">
+    <div class="card"><div class="ico">🔎</div><h3>Tendências</h3><p>Pesquisa o que está em alta no seu setor e sugere ideias de conteúdo.</p></div>
+    <div class="card"><div class="ico">🗓️</div><h3>Estrategista</h3><p>Planeja as pautas da semana com base no que deu resultado.</p></div>
+    <div class="card"><div class="ico">🎨</div><h3>Designers</h3><p>Carrosséis, posts únicos e stories com enquete, caixinha e chamada.</p></div>
+    <div class="card"><div class="ico">🎉</div><h3>Datas comemorativas</h3><p>Datas gerais e do seu setor, como Dia do Contador ou do Dentista, com aviso antecipado.</p></div>
+    <div class="card"><div class="ico">🎬</div><h3>Vídeos</h3><p>Reels com cenas de IA, com gravações da sua empresa ou com o seu avatar (Premium).</p></div>
+    <div class="card"><div class="ico">📊</div><h3>Analista</h3><p>Mede o que funcionou e entrega um relatório mensal simples.</p></div>
+  </div>
+</div></section>
+
+<section style="background:var(--bg2)"><div class="wrap">
+  <h2>Como funciona</h2>
+  <p class="sub">Você continua no controle: nada vai para o ar sem o seu OK.</p>
+  <div class="grid passos">
+    <div class="card"><h3>Implantação</h3><p>Montamos o guia da sua marca, o calendário do setor e configuramos os agentes.</p></div>
+    <div class="card"><h3>Produção semanal</h3><p>Os agentes criam as peças e mandam a prévia para você no celular.</p></div>
+    <div class="card"><h3>Você aprova</h3><p>Aprovar, pedir ajuste ou reprovar leva poucos minutos por semana.</p></div>
+    <div class="card"><h3>Publicação e relatório</h3><p>As peças aprovadas vão para o ar e, no fim do mês, você recebe os resultados.</p></div>
+  </div>
+</div></section>
+
+<section id="pacotes" class="pac"><div class="wrap">
+  <h2>Pacotes</h2>
+  <p class="sub">Valores de referência. A proposta final depende do volume e do seu setor.</p>
+  <div class="grid">
+    <div class="card"><h3>Essencial</h3><div class="preco">a partir de<b>R$ 990/mês</b></div>
+      <ul><li>12 posts por mês (carrossel e post único)</li><li>Datas comemorativas</li><li>Artes para Status e stories</li><li>Relatório mensal</li></ul>
+      <button class="btn sec" data-abrir="Quero saber mais sobre o pacote Essencial">Quero este</button></div>
+    <div class="card dest"><h3>Profissional</h3><div class="preco">a partir de<b>R$ 1.790/mês</b></div>
+      <ul><li>20 posts por mês em formatos variados</li><li>Stories semanais</li><li>Datas do seu setor</li><li>Resposta a comentários</li><li>Relatório mensal</li></ul>
+      <button class="btn" data-abrir="Quero saber mais sobre o pacote Profissional">Quero este</button></div>
+    <div class="card"><h3>Premium com vídeo</h3><div class="preco">a partir de<b>R$ 2.990/mês</b></div>
+      <ul><li>Tudo do Profissional</li><li>4 a 8 Reels por mês com o seu avatar</li><li>Seu rosto e sua voz, com autorização por escrito</li></ul>
+      <button class="btn sec" data-abrir="Quero saber mais sobre o pacote Premium com vídeo">Quero este</button></div>
+  </div>
+  <p class="nota">Implantação única a partir de R$ 1.500. Contrato mínimo a partir de 3 meses. Conteúdo feito com IA é identificado como tal.</p>
+</div></section>
+
+<section class="faq" style="background:var(--bg2)"><div class="wrap">
+  <h2>Perguntas frequentes</h2>
+  <details><summary>Não vai ficar genérico, com cara de IA?</summary><p>Os agentes trabalham com o guia da sua marca, exemplos do seu setor e aprendem com as suas correções. E tudo passa pela sua aprovação.</p></details>
+  <details><summary>Quanto tempo eu gasto por semana?</summary><p>Poucos minutos: você recebe as prévias no celular e responde aprovar, ajustar ou reprovar.</p></details>
+  <details><summary>Preciso aparecer em vídeo?</summary><p>Não. O avatar é opcional e só existe no Premium. Os outros pacotes usam artes, cenas de IA ou gravações da sua empresa.</p></details>
+  <details><summary>Quem publica no Instagram?</summary><p>Combinamos na implantação: por ferramenta parceira da Meta ou você programa com tudo pronto (arte, texto e legenda).</p></details>
+</div></section>
+
+<footer><div class="wrap"><img class="logo-rod" src="data:image/png;base64,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" alt="Evolue Treinamento e Desenvolvimento"><br>Time de Marketing IA · do grupo Evolue — Linhares/ES · Atendimento humano de segunda a sexta, das 8h às 17h · lucas@evoluetreinamento.com.br</div></footer>
+
+<div class="fab" id="fab"><button class="btn" data-abrir><span class="dot"></span> Fale com a Lia</button></div>
+
+<div class="chat" id="chat" role="dialog" aria-label="Chat com a Lia">
+  <div class="chat-top">
+    <div class="av">L</div>
+    <div><b>Lia</b><small><span class="dot"></span> Assistente virtual com IA</small></div>
+    <button class="x" id="fechar" aria-label="Fechar">×</button>
+  </div>
+  <div class="msgs" id="msgs"></div>
+  <div class="rap" id="rap"></div>
+  <form class="envio" id="form">
+    <textarea id="txt" placeholder="Escreva sua mensagem…" rows="1" maxlength="1200"></textarea>
+    <button id="enviar" aria-label="Enviar">➤</button>
+  </form>
+  <p class="lgpd">Usamos seus dados só para responder ao seu interesse. Conversa com assistente de IA.</p>
+</div>
+
+<script>
+const CONFIG = {
+  endpoint: "https://wmfevnhfkgrwvernyqcf.supabase.co/functions/v1/vendedor-chat",
+  boasVindas: "Oi! Eu sou a Lia, assistente virtual do Time de Marketing IA, do grupo Evolue. 👋\nPosso te mostrar como um time de agentes de IA cuidaria do Instagram da sua empresa. Para começar: qual é o seu nome e o que a sua empresa faz?",
+  botoesIniciais: ["Como funciona?", "Quanto custa?", "Quero falar com o Lucas"],
+};
+
+const $ = (s) => document.querySelector(s);
+const msgs = $("#msgs"), rap = $("#rap"), txt = $("#txt"), btn = $("#enviar"), chat = $("#chat");
+let sessao, iniciado = false, ocupado = false;
+try { sessao = localStorage.getItem("tmia_sessao"); } catch (e) {}
+if (!sessao) { sessao = "s_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 10); try { localStorage.setItem("tmia_sessao", sessao); } catch (e) {} }
+const origem = (new URLSearchParams(location.search).get("utm_source") || document.referrer || "direto").slice(0, 120);
+
+function bolha(texto, quem) {
+  const d = document.createElement("div");
+  d.className = "m " + quem;
+  d.textContent = texto;
+  msgs.appendChild(d);
+  msgs.scrollTop = msgs.scrollHeight;
+  return d;
+}
+function botoes(lista) {
+  rap.innerHTML = "";
+  (lista || []).forEach((t) => {
+    const b = document.createElement("button");
+    b.type = "button"; b.textContent = t;
+    b.onclick = () => enviar(t);
+    rap.appendChild(b);
+  });
+}
+function abrir(texto) {
+  chat.classList.add("on"); $("#fab").style.display = "none";
+  if (!iniciado) { iniciado = true; bolha(CONFIG.boasVindas, "v"); botoes(CONFIG.botoesIniciais); }
+  if (texto) enviar(texto); else setTimeout(() => txt.focus(), 50);
+}
+document.querySelectorAll("[data-abrir]").forEach((el) => el.addEventListener("click", () => abrir(el.dataset.abrir || "")));
+$("#fechar").onclick = () => { chat.classList.remove("on"); $("#fab").style.display = ""; };
+
+// ---------- Modo prévia: IA local (Claude) quando o servidor não está acessível ----------
+const PROMPT_LOCAL = ""; // a versão publicada usa a IA do servidor; o roteiro abaixo é só reserva
+const historico = []; // [{role, content}]
+let iaLocal; // namespace sample, null se indisponível
+async function obterIaLocal() {
+  if (iaLocal !== undefined) return iaLocal;
+  try { iaLocal = window.claude && window.claude.use ? await window.claude.use("sample") : null; } catch (e) { iaLocal = null; }
+  return iaLocal;
+}
+function lerJson(t) {
+  const s = String(t || "").replace(/\x60{3}(?:json)?/gi, "");
+  const i = s.indexOf("{"), f = s.lastIndexOf("}");
+  if (i < 0 || f <= i) return null;
+  try { return JSON.parse(s.slice(i, f + 1)); } catch (e) { return null; }
+}
+async function responderIaLocal() {
+  const sample = await obterIaLocal();
+  if (!sample) return null;
+  const msgs = [{ role: "user", content: PROMPT_LOCAL + "\n\n(Início da conversa. A Lia já se apresentou e perguntou o nome e o que a empresa faz.)" }, { role: "assistant", content: JSON.stringify({ resposta: CONFIG.boasVindas, botoes: [] }) }, ...historico.slice(-20)];
+  const out = await sample(msgs, { modelTier: "default", cache: false });
+  const j = lerJson(out && out.text);
+  if (!j || !j.resposta) return { resposta: String(out && out.text || "").slice(0, 800) || "Pode me contar um pouco mais?", botoes: [] };
+  return { resposta: String(j.resposta), botoes: Array.isArray(j.botoes) ? j.botoes.slice(0, 3) : [] };
+}
+
+// ---------- Último recurso: roteiro em etapas, sem repetir perguntas ----------
+const etapas = [
+  { r: "Prazer! Me conta: hoje quem cuida do Instagram da empresa e com que frequência vocês postam?", b: ["Eu mesmo, quando dá", "Temos social media", "Quase não postamos"] },
+  { r: "Entendi. E o que você mais gostaria que o Instagram trouxesse: mais clientes, mais autoridade no seu setor ou atrair bons candidatos?", b: ["Mais clientes", "Autoridade", "Candidatos"] },
+  { r: "Faz sentido. Os agentes planejam as pautas, criam carrosséis, posts, stories e datas do seu setor, e você só aprova pelo celular. Você toparia aparecer em vídeo com um avatar seu, ou prefere só artes?", b: ["Toparia o avatar", "Prefiro só artes"] },
+  { r: "Pelo que você contou, o Profissional (a partir de R$ 1.790/mês) costuma ser o melhor começo; se quiser vídeos com o seu avatar, o Premium parte de R$ 2.990. Quer que o Lucas monte uma proposta? Ele faz uma conversa rápida de 15 a 20 minutos.", b: ["Quero falar com o Lucas", "Quanto custa a implantação?"] },
+  { r: "Ótimo! Qual é o seu WhatsApp com DDD e o melhor horário para o Lucas te chamar?", b: [] },
+  { r: "Anotado! O Lucas te chama no WhatsApp em horário comercial (seg a sex, 8h às 17h). Ficou alguma dúvida que eu possa tirar agora?", b: ["Como funciona a aprovação?", "Quem publica?"] },
+];
+const atalhos = [
+  [/quanto|pre[cç]o|valor|custa/i, "precos", "Os pacotes começam em R$ 990/mês (Essencial, 12 posts). O Profissional parte de R$ 1.790 e o Premium com vídeo do seu avatar, de R$ 2.990. A implantação é a partir de R$ 1.500 e o contrato mínimo, a partir de 3 meses."],
+  [/aprova/i, "aprovacao", "Você recebe a prévia de cada peça no celular e responde aprovar, ajustar ou reprovar. Leva poucos minutos por semana, e nada vai para o ar sem o seu OK."],
+  [/publica|postar/i, "publicacao", "Combinamos na implantação: as peças aprovadas vão por ferramenta parceira da Meta ou você programa com tudo pronto (arte, texto e legenda)."],
+  [/v[ií]deo|avatar|aparecer/i, "video", "O avatar é opcional e só entra no Premium. Nos outros pacotes, os Reels usam cenas de IA ou gravações da sua empresa."],
+];
+let etapa = 0, pedidoFone = 0; const usados = new Set();
+function demo(texto) {
+  const querContato = /falar com|proposta|contato|conversar com|me liga|me chama/i.test(texto) && etapa < 4;
+  const temFone = texto.replace(/\D/g, "").length >= 10;
+  if (temFone && etapa <= 5) etapa = 5; else if (querContato) etapa = 4;
+  if (etapa === 5 && !temFone) {
+    const pedidos = ["Claro! Só preciso do seu WhatsApp com DDD para o Lucas te chamar.", "Se preferir, pode escrever direto para lucas@evoluetreinamento.com.br. Posso ajudar com mais alguma dúvida?"];
+    const p = pedidos[pedidoFone++];
+    if (p) { if (pedidoFone >= pedidos.length) etapa = 6; return { resposta: p, botoes: [] }; }
+  }
+  let extra = "";
+  for (const [re, chave, r] of atalhos) if (re.test(texto) && !usados.has(chave)) { usados.add(chave); extra = r; break; }
+  if (etapa >= etapas.length) {
+    if (extra) return { resposta: extra, botoes: [] };
+    const fim = ["Perfeito! Qualquer outra dúvida, o Lucas responde na conversa com você.", "Combinado! Se lembrar de mais alguma pergunta, é só escrever aqui.", "Obrigada pelo contato! 😊"];
+    const i = etapa++ - etapas.length;
+    if (i < fim.length) return { resposta: fim[i], botoes: [] };
+    return { resposta: "", botoes: [] };
+  }
+  const e = etapas[etapa++];
+  return { resposta: extra ? extra + "\n\n" + e.r : e.r, botoes: e.b };
+}
+
+let modo = new URLSearchParams(location.search).get("demo") === "1" ? "roteiro" : "servidor";
+async function enviar(texto) {
+  texto = (texto || "").trim();
+  if (!texto || ocupado) return;
+  ocupado = true; btn.disabled = true; botoes([]);
+  bolha(texto, "l"); txt.value = ""; txt.style.height = "";
+  historico.push({ role: "user", content: texto });
+  const dig = bolha("", "v"); dig.innerHTML = '<span class="digit"><i></i><i></i><i></i></span>';
+  let r = null;
+  if (modo === "servidor") {
+    try {
+      const resp = await fetch(CONFIG.endpoint, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessao, mensagem: texto, canal: "site", origem }),
+      });
+      r = await resp.json();
+      if (!r.resposta) throw new Error(r.erro || "sem resposta");
+    } catch (e) {
+      r = null;
+      modo = (await obterIaLocal()) ? "ia" : "roteiro";
+      bolha(modo === "ia" ? "Prévia: a Lia está respondendo com IA, mas esta conversa não é gravada como lead." : "Prévia: respostas de exemplo (servidor indisponível).", "aviso");
+    }
+  }
+  if (!r && modo === "ia") {
+    try { r = await responderIaLocal(); } catch (e) { r = null; }
+    if (!r) { modo = "roteiro"; }
+  }
+  if (!r) { await new Promise((ok) => setTimeout(ok, 600)); r = demo(texto); }
+  historico.push({ role: "assistant", content: JSON.stringify({ resposta: r.resposta, botoes: r.botoes || [] }) });
+  dig.remove();
+  if (r.resposta) bolha(r.resposta, "v");
+  botoes(r.botoes);
+  ocupado = false; btn.disabled = false; txt.focus();
+}
+$("#form").addEventListener("submit", (e) => { e.preventDefault(); enviar(txt.value); });
+txt.addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); enviar(txt.value); } });
+txt.addEventListener("input", () => { txt.style.height = "auto"; txt.style.height = Math.min(txt.scrollHeight, 110) + "px"; });
+if (location.hash === "#chat") abrir();
+</script>
+</body>
+</html>
