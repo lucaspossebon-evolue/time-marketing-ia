@@ -1,3 +1,3 @@
-# Time de Marketing IA · do grupo Evolue
+# Lúmen Marketing Digital
 
-Página de vendas com o chat da Lia (assistente comercial com IA). O cérebro da Lia fica na função `vendedor-chat` do Supabase evolue-interno.
+Seu time de marketing com IA. Página de vendas com o chat da Lia, assistente comercial com IA.
