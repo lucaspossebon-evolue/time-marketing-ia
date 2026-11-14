@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Painel de Leads · Time de Marketing IA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--bg:#0b1220;--bg2:#111a2e;--card:#16213a;--card2:#1b2844;--line:#24314f;--tx:#eef2fb;--tx2:#a8b3cc;--ac:#3d8bff;--ac2:#22d3ee;
+--q:#f97316;--m:#eab308;--f:#64748b;--ok:#22c55e;--er:#ef4444}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Poppins,system-ui,sans-serif;background:var(--bg);color:var(--tx);font-size:14px;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+.topo{position:sticky;top:0;z-index:5;background:rgba(11,18,32,.9);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.topo .in{max-width:1200px;margin:0 auto;padding:12px 18px;display:flex;align-items:center;gap:12px}
+.topo h1{font-size:16px;font-weight:700}
+.topo h1 small{display:block;font-weight:400;font-size:11px;color:var(--tx2)}
+.vivo{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--tx2);margin-left:auto}
+.vivo i{width:8px;height:8px;border-radius:50%;background:var(--f)}
+.vivo.on i{background:var(--ok);box-shadow:0 0 0 3px rgba(34,197,94,.25)}
+.sair{background:none;border:1px solid var(--line);border-radius:999px;padding:6px 12px;cursor:pointer;font-size:12px;color:var(--tx2)}
+main{max-width:1200px;margin:0 auto;padding:18px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px}
+@media(max-width:600px){.kpis{grid-template-columns:repeat(3,1fr);gap:8px}.kpi{padding:10px}.kpi b{font-size:21px}.kpi span{font-size:11px}.filtros select{flex:1}}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px}
+.kpi b{display:block;font-size:26px;font-weight:700;line-height:1.1}
+.kpi span{font-size:12px;color:var(--tx2)}
+.filtros{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.filtros input,.filtros select{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:9px 12px}
+.filtros input{flex:1;min-width:200px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.chip{background:transparent;border:1px solid var(--line);border-radius:999px;padding:6px 12px;cursor:pointer;font-size:12.5px;color:var(--tx2)}
+.chip.on{background:var(--ac);border-color:var(--ac);color:#fff}
+.chip em{font-style:normal;opacity:.75;margin-left:4px}
+.lista{display:flex;flex-direction:column;gap:8px}
+.lead{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:grid;grid-template-columns:1fr auto;gap:4px 12px;cursor:pointer;text-align:left;width:100%}
+.lead:hover{border-color:var(--ac)}
+.lead .n{font-weight:600;font-size:15px}
+.lead .e{color:var(--tx2);font-size:12.5px}
+.lead .r{grid-column:1/-1;color:var(--tx2);font-size:12.5px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.lead .lado{text-align:right;font-size:11.5px;color:var(--tx2);display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.tag{display:inline-block;font-size:11px;font-weight:600;padding:2px 9px;border-radius:999px;border:1px solid}
+.t-quente{color:var(--q);border-color:rgba(249,115,22,.5)}
+.t-morno{color:var(--m);border-color:rgba(234,179,8,.5)}
+.t-frio{color:#94a3b8;border-color:rgba(100,116,139,.5)}
+.s{background:rgba(61,139,255,.15);border-color:transparent;color:#9cc3ff}
+.s-pediu_contato{background:rgba(249,115,22,.18);color:#fdba74}
+.s-fechado{background:rgba(34,197,94,.18);color:#86efac}
+.s-perdido{background:rgba(100,116,139,.2);color:#94a3b8}
+.vazio{color:var(--tx2);text-align:center;padding:40px 10px}
+/* ficha */
+.fundo{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:20;display:none}
+.fundo.on{display:block}
+.ficha{position:fixed;top:0;right:0;bottom:0;width:min(560px,100%);background:var(--bg2);border-left:1px solid var(--line);z-index:21;transform:translateX(100%);transition:transform .2s;display:flex;flex-direction:column}
+.ficha.on{transform:none}
+.f-topo{padding:14px 16px;border-bottom:1px solid var(--line);display:flex;align-items:flex-start;gap:10px}
+.f-topo h2{font-size:17px}
+.f-topo p{color:var(--tx2);font-size:12.5px}
+.x{margin-left:auto;background:none;border:0;font-size:26px;line-height:1;color:var(--tx2);cursor:pointer}
+.f-corpo{flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:14px}
+.bloco h3{font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:var(--tx2);margin-bottom:8px;font-weight:600}
+.dados{display:grid;grid-template-columns:110px 1fr;gap:6px 10px;font-size:13.5px}
+.dados dt{color:var(--tx2)}
+.acoes{display:flex;gap:8px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:6px;border:0;border-radius:10px;padding:9px 14px;cursor:pointer;font-weight:600;font-size:13px;text-decoration:none;background:var(--ac);color:#fff}
+.btn.wpp{background:#16a34a}
+.btn.sec{background:transparent;border:1px solid var(--line);color:var(--tx)}
+.status-sel{display:flex;flex-wrap:wrap;gap:6px}
+.status-sel button{border:1px solid var(--line);background:transparent;border-radius:999px;padding:6px 11px;cursor:pointer;font-size:12.5px;color:var(--tx2)}
+.status-sel button.on{background:var(--ac);border-color:var(--ac);color:#fff}
+textarea.notas{width:100%;min-height:80px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px;resize:vertical}
+.salvo{font-size:11.5px;color:var(--tx2);margin-top:4px;min-height:16px}
+.conversa{display:flex;flex-direction:column;gap:8px}
+.msg{max-width:88%;padding:8px 12px;border-radius:14px;font-size:13.5px;white-space:pre-wrap;word-wrap:break-word}
+.msg.lead-m{align-self:flex-end;background:var(--ac);color:#fff;border-bottom-right-radius:4px}
+.msg.vend{align-self:flex-start;background:var(--card);border:1px solid var(--line);border-bottom-left-radius:4px}
+.msg small{display:block;font-size:10.5px;opacity:.7;margin-top:3px}
+/* login */
+.login{max-width:360px;margin:12vh auto;padding:24px;background:var(--card);border:1px solid var(--line);border-radius:18px}
+.login h2{font-size:18px;margin-bottom:4px}
+.login p{color:var(--tx2);font-size:13px;margin-bottom:16px}
+.login label{display:block;font-size:12px;color:var(--tx2);margin:10px 0 4px}
+.login input{width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:11px 12px}
+.login .btn{width:100%;justify-content:center;margin-top:16px;padding:12px}
+.erro{color:#fca5a5;font-size:12.5px;margin-top:10px;min-height:18px}
+.aviso-demo{background:rgba(234,179,8,.12);border:1px solid rgba(234,179,8,.4);color:#fde68a;border-radius:10px;padding:8px 12px;font-size:12.5px;margin-bottom:12px}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+
+<section id="telaLogin" class="login" hidden>
+  <h2>Painel de Leads</h2>
+  <p>Time de Marketing IA · do grupo Evolue. Entre com o mesmo e-mail e senha do escritório virtual.</p>
+  <form id="formLogin">
+    <label for="email">E-mail</label>
+    <input id="email" type="email" autocomplete="username" required>
+    <label for="senha">Senha</label>
+    <input id="senha" type="password" autocomplete="current-password" required>
+    <button class="btn" type="submit">Entrar</button>
+  </form>
+  <div class="erro" id="erroLogin"></div>
+</section>
+
+<div id="telaPainel" hidden>
+  <header class="topo"><div class="in">
+    <h1>Painel de Leads<small>Time de Marketing IA · Lia</small></h1>
+    <span class="vivo" id="vivo"><i></i> <span id="vivoTxt">conectando…</span></span>
+    <button class="sair" id="sair">Sair</button>
+  </div></header>
+  <main>
+    <div class="aviso-demo" id="avisoDemo" hidden>Modo demonstração: dados de exemplo.</div>
+    <div class="kpis" id="kpis"></div>
+    <div class="filtros">
+      <input id="busca" type="search" placeholder="Buscar por nome, empresa, cidade, WhatsApp…">
+      <select id="fTemp"><option value="">Todas as temperaturas</option><option value="quente">Quente</option><option value="morno">Morno</option><option value="frio">Frio</option></select>
+      <select id="fPeriodo"><option value="">Todo o período</option><option value="7">Últimos 7 dias</option><option value="30">Últimos 30 dias</option></select>
+    </div>
+    <div class="chips" id="chips"></div>
+    <div class="lista" id="lista"></div>
+  </main>
+</div>
+
+<div class="fundo" id="fundo"></div>
+<aside class="ficha" id="ficha" aria-label="Ficha do lead">
+  <div class="f-topo"><div><h2 id="fNome"></h2><p id="fSub"></p></div><button class="x" id="fFechar" aria-label="Fechar">×</button></div>
+  <div class="f-corpo">
+    <div class="acoes" id="fAcoes"></div>
+    <div class="bloco"><h3>Status</h3><div class="status-sel" id="fStatus"></div></div>
+    <div class="bloco"><h3>Resumo da Lia</h3><p id="fResumo" style="color:var(--tx2);font-size:13.5px"></p></div>
+    <div class="bloco"><h3>Dados</h3><dl class="dados" id="fDados"></dl></div>
+    <div class="bloco"><h3>Anotações</h3><textarea class="notas" id="fNotas" placeholder="Ex.: liguei na segunda, pediu proposta do Profissional…"></textarea><div class="salvo" id="fSalvo"></div></div>
+    <div class="bloco"><h3>Conversa com a Lia</h3><div class="conversa" id="fConversa"></div></div>
+  </div>
+</aside>
+
+<script>
+const SUPABASE_URL = "https://wmfevnhfkgrwvernyqcf.supabase.co";
+const SUPABASE_KEY = "sb_publishable_UHvzB_OuCtbda_rGxunDXw_WGBIE6wH";
+const STATUS = [
+  ["novo", "Novo"], ["pediu_contato", "Pediu contato"], ["contatado", "Contatado"],
+  ["proposta", "Proposta enviada"], ["fechado", "Fechado"], ["perdido", "Perdido"],
+];
+const NOME_STATUS = Object.fromEntries(STATUS);
+const DEMO = new URLSearchParams(location.search).get("demo") === "1";
+
+const $ = (s) => document.querySelector(s);
+const esc = (t) => String(t ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+let sb = null, leads = [], filtroStatus = "", aberto = null, timerNotas = null;
+
+function dataCurta(iso) {
+  if (!iso) return "";
+  const d = new Date(iso), hoje = new Date();
+  const mesmoDia = d.toDateString() === hoje.toDateString();
+  return mesmoDia ? "hoje " + d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
+    : d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }) + " " + d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+}
+function linkWhats(n) {
+  let d = String(n || "").replace(/\D/g, "");
+  if (!d) return null;
+  if (d.length <= 11) d = "55" + d;
+  return "https://wa.me/" + d;
+}
+
+// ---------- telas ----------
+function mostrar(tela) {
+  $("#telaLogin").hidden = tela !== "login";
+  $("#telaPainel").hidden = tela !== "painel";
+}
+
+async function iniciar() {
+  if (DEMO) { mostrar("painel"); $("#avisoDemo").hidden = false; $("#sair").hidden = true; leads = demoLeads(); vivo(true, "demonstração"); render(); return; }
+  sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  const { data } = await sb.auth.getSession();
+  if (data.session) entrar(); else mostrar("login");
+}
+$("#formLogin").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  $("#erroLogin").textContent = "";
+  const { error } = await sb.auth.signInWithPassword({ email: $("#email").value.trim(), password: $("#senha").value });
+  if (error) { $("#erroLogin").textContent = "Não consegui entrar: confira o e-mail e a senha."; return; }
+  entrar();
+});
+$("#sair").onclick = async () => { await sb.auth.signOut(); location.reload(); };
+
+async function entrar() {
+  mostrar("painel");
+  await carregar();
+  sb.channel("leads-painel")
+    .on("postgres_changes", { event: "*", schema: "public", table: "comercial_leads" }, (p) => {
+      if (p.eventType === "DELETE") leads = leads.filter((l) => l.id !== p.old.id);
+      else {
+        const i = leads.findIndex((l) => l.id === p.new.id);
+        if (i >= 0) leads[i] = { ...leads[i], ...p.new }; else leads.unshift(p.new);
+      }
+      render();
+      if (aberto && p.new && p.new.id === aberto.id) preencherFicha(leads.find((l) => l.id === aberto.id), false);
+    })
+    .on("postgres_changes", { event: "INSERT", schema: "public", table: "comercial_mensagens" }, (p) => {
+      if (aberto && p.new.sessao === aberto.sessao) adicionarMsg(p.new, true);
+    })
+    .subscribe((s) => vivo(s === "SUBSCRIBED", s === "SUBSCRIBED" ? "ao vivo" : "reconectando…"));
+}
+function vivo(on, txt) { $("#vivo").classList.toggle("on", on); $("#vivoTxt").textContent = txt; }
+
+async function carregar() {
+  const { data, error } = await sb.from("comercial_leads").select("*").order("atualizado_em", { ascending: false }).limit(1000);
+  if (error) { $("#lista").innerHTML = '<div class="vazio">Erro ao carregar: ' + esc(error.message) + "</div>"; return; }
+  if (!data.length && !(await souAdmin())) {
+    $("#lista").innerHTML = '<div class="vazio">Seu usuário entrou, mas não está na lista de administradores do painel. Peça ao Lucas para incluir seu e-mail.</div>';
+    return;
+  }
+  leads = data; render();
+}
+async function souAdmin() { const { data } = await sb.rpc("eh_admin_painel"); return !!data; }
+
+// ---------- lista ----------
+function filtrados() {
+  const q = $("#busca").value.trim().toLowerCase();
+  const t = $("#fTemp").value, p = Number($("#fPeriodo").value);
+  const limite = p ? Date.now() - p * 864e5 : 0;
+  return leads.filter((l) => {
+    if (filtroStatus && (l.status || "novo") !== filtroStatus) return false;
+    if (t && l.temperatura !== t) return false;
+    if (limite && new Date(l.criado_em).getTime() < limite) return false;
+    if (q && ![l.nome, l.empresa, l.segmento, l.cidade, l.whatsapp, l.email, l.instagram, l.resumo, l.origem].join(" ").toLowerCase().includes(q)) return false;
+    return true;
+  });
+}
+function render() {
+  const semana = Date.now() - 7 * 864e5;
+  const conv = leads.filter((l) => (l.total_mensagens || 0) > 0);
+  const k = [
+    [conv.length, "conversas no total"],
+    [conv.filter((l) => new Date(l.criado_em).getTime() >= semana).length, "conversas nos últimos 7 dias"],
+    [leads.filter((l) => l.quer_contato).length, "pediram contato"],
+    [leads.filter((l) => l.temperatura === "quente").length, "leads quentes"],
+    [leads.filter((l) => l.status === "fechado").length, "fechados"],
+  ];
+  $("#kpis").innerHTML = k.map(([n, t]) => `<div class="kpi"><b>${n}</b><span>${t}</span></div>`).join("");
+
+  const cont = {}; leads.forEach((l) => { const s = l.status || "novo"; cont[s] = (cont[s] || 0) + 1; });
+  $("#chips").innerHTML = [["", "Todos", leads.length], ...STATUS.map(([v, n]) => [v, n, cont[v] || 0])]
+    .map(([v, n, c]) => `<button class="chip ${filtroStatus === v ? "on" : ""}" data-s="${v}">${n}<em>${c}</em></button>`).join("");
+  $("#chips").querySelectorAll(".chip").forEach((b) => (b.onclick = () => { filtroStatus = b.dataset.s; render(); }));
+
+  const lista = filtrados();
+  if (!lista.length) { $("#lista").innerHTML = '<div class="vazio">' + (leads.length ? "Nenhum lead com esses filtros." : "Ainda não chegou nenhum lead. Quando alguém conversar com a Lia, ele aparece aqui na hora.") + "</div>"; return; }
+  $("#lista").innerHTML = lista.map((l) => `
+    <button class="lead" data-id="${l.id}">
+      <div><div class="n">${esc(l.nome || "Sem nome")}${l.empresa ? " · <span style='font-weight:500'>" + esc(l.empresa) + "</span>" : ""}</div>
+      <div class="e">${esc([l.segmento, l.cidade, l.pacote_sugerido && "pacote " + l.pacote_sugerido].filter(Boolean).join(" · ") || "Conversa iniciada")}</div></div>
+      <div class="lado">
+        <span class="tag s s-${esc(l.status || "novo")}">${esc(NOME_STATUS[l.status] || "Novo")}</span>
+        ${l.temperatura ? `<span class="tag t-${esc(l.temperatura)}">${esc(l.temperatura)}</span>` : ""}
+        <span>${dataCurta(l.atualizado_em)}</span>
+      </div>
+      ${l.resumo ? `<div class="r">${esc(l.resumo)}</div>` : ""}
+    </button>`).join("");
+  $("#lista").querySelectorAll(".lead").forEach((b) => (b.onclick = () => abrirFicha(Number(b.dataset.id))));
+}
+["#busca", "#fTemp", "#fPeriodo"].forEach((s) => $(s).addEventListener("input", render));
+
+// ---------- ficha ----------
+async function abrirFicha(id) {
+  const l = leads.find((x) => x.id === id); if (!l) return;
+  aberto = l;
+  $("#fundo").classList.add("on"); $("#ficha").classList.add("on");
+  preencherFicha(l, true);
+  $("#fConversa").innerHTML = '<div class="vazio" style="padding:10px">Carregando conversa…</div>';
+  let msgs = [];
+  if (DEMO) msgs = demoMsgs();
+  else { const { data } = await sb.from("comercial_mensagens").select("*").eq("sessao", l.sessao).order("criado_em"); msgs = data || []; }
+  $("#fConversa").innerHTML = msgs.length ? "" : '<div class="vazio" style="padding:10px">Sem mensagens.</div>';
+  msgs.forEach((m) => adicionarMsg(m, false));
+}
+function adicionarMsg(m, rolar) {
+  const d = document.createElement("div");
+  d.className = "msg " + (m.papel === "lead" ? "lead-m" : "vend");
+  d.innerHTML = esc(m.texto) + `<small>${m.papel === "lead" ? "Lead" : "Lia"} · ${dataCurta(m.criado_em)}</small>`;
+  const vazio = $("#fConversa").querySelector(".vazio"); if (vazio) vazio.remove();
+  $("#fConversa").appendChild(d);
+  if (rolar) d.scrollIntoView({ behavior: "smooth", block: "end" });
+}
+function preencherFicha(l, notas) {
+  if (!l) return;
+  aberto = l;
+  $("#fNome").textContent = l.nome || "Sem nome";
+  $("#fSub").textContent = [l.empresa, l.cidade, "chegou " + dataCurta(l.criado_em)].filter(Boolean).join(" · ");
+  const w = linkWhats(l.whatsapp);
+  $("#fAcoes").innerHTML =
+    (w ? `<a class="btn wpp" href="${w}" target="_blank" rel="noopener">WhatsApp ${esc(l.whatsapp)}</a>` : "") +
+    (l.email ? `<a class="btn sec" href="mailto:${esc(l.email)}">${esc(l.email)}</a>` : "") +
+    (l.instagram ? `<a class="btn sec" href="https://instagram.com/${esc(String(l.instagram).replace(/^@/, ""))}" target="_blank" rel="noopener">${esc(l.instagram)}</a>` : "") ||
+    '<span style="color:var(--tx2);font-size:13px">O lead ainda não deixou contato.</span>';
+  $("#fStatus").innerHTML = STATUS.map(([v, n]) => `<button class="${(l.status || "novo") === v ? "on" : ""}" data-v="${v}">${n}</button>`).join("");
+  $("#fStatus").querySelectorAll("button").forEach((b) => (b.onclick = () => salvar({ status: b.dataset.v, status_em: new Date().toISOString() })));
+  $("#fResumo").textContent = l.resumo || "A Lia ainda não fez um resumo deste lead.";
+  const campos = [["Segmento", l.segmento], ["Objetivo", l.objetivo], ["Pacote provável", l.pacote_sugerido], ["Temperatura", l.temperatura],
+    ["Pediu contato", l.quer_contato ? "sim" : "não"], ["Canal", l.canal], ["Origem", l.origem], ["Mensagens", l.total_mensagens]];
+  $("#fDados").innerHTML = campos.filter(([, v]) => v !== null && v !== undefined && v !== "").map(([k, v]) => `<dt>${k}</dt><dd>${esc(v)}</dd>`).join("");
+  if (notas) { $("#fNotas").value = l.anotacoes || ""; $("#fSalvo").textContent = ""; }
+}
+async function salvar(campos) {
+  if (!aberto) return;
+  Object.assign(aberto, campos);
+  const i = leads.findIndex((l) => l.id === aberto.id); if (i >= 0) leads[i] = { ...leads[i], ...campos };
+  preencherFicha(aberto, false); render();
+  if (DEMO) { $("#fSalvo").textContent = "Salvo (demonstração)"; return; }
+  const { error } = await sb.from("comercial_leads").update(campos).eq("id", aberto.id);
+  $("#fSalvo").textContent = error ? "Não salvou: " + error.message : "Salvo às " + new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+}
+$("#fNotas").addEventListener("input", () => { $("#fSalvo").textContent = "Salvando…"; clearTimeout(timerNotas); timerNotas = setTimeout(() => salvar({ anotacoes: $("#fNotas").value }), 800); });
+function fechar() { $("#fundo").classList.remove("on"); $("#ficha").classList.remove("on"); aberto = null; }
+$("#fFechar").onclick = fechar; $("#fundo").onclick = fechar;
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") fechar(); });
+
+// ---------- demonstração ----------
+function demoLeads() {
+  const h = (d) => new Date(Date.now() - d * 36e5).toISOString();
+  return [
+    { id: 1, sessao: "d1", nome: "Marina", empresa: "Contabilidade Silva", segmento: "Contabilidade", cidade: "Linhares", whatsapp: "27 98888-0000", pacote_sugerido: "Profissional", temperatura: "quente", quer_contato: true, status: "pediu_contato", canal: "site", origem: "instagram", total_mensagens: 4, resumo: "Dona de contabilidade em Linhares. Posta pouco e quer autoridade no setor. Pediu contato à tarde. Pacote provável: Profissional.", criado_em: h(2), atualizado_em: h(1) },
+    { id: 2, sessao: "d2", nome: "Rafael", empresa: "Clínica Sorriso", segmento: "Odontologia", cidade: "Colatina", pacote_sugerido: "Essencial", temperatura: "morno", status: "novo", canal: "site", origem: "direto", total_mensagens: 3, resumo: "Dentista, posta sozinho quando dá tempo. Perguntou preço, ainda não deixou contato.", criado_em: h(30), atualizado_em: h(29) },
+    { id: 3, sessao: "d3", nome: "Paulo", empresa: "Rede de lojas", segmento: "Varejo", cidade: "Vitória", whatsapp: "27 99999-1111", pacote_sugerido: "Premium com vídeo", temperatura: "quente", quer_contato: true, status: "proposta", canal: "whatsapp", origem: "whatsapp", total_mensagens: 8, anotacoes: "Proposta enviada na segunda. Retornar quinta.", resumo: "Dono de rede de lojas, topa aparecer em vídeo. Quer Reels com avatar.", criado_em: h(90), atualizado_em: h(70) },
+  ];
+}
+function demoMsgs() {
+  const h = (m) => new Date(Date.now() - m * 6e4).toISOString();
+  return [
+    { papel: "lead", texto: "Sou a Marina, tenho uma contabilidade em Linhares. Quero o pacote Profissional.", criado_em: h(90) },
+    { papel: "vendedor", texto: "Prazer, Marina! Para contabilidade o Profissional costuma fazer sentido: 20 posts por mês, stories semanais e datas do setor, como o Dia do Contador. Hoje quem cuida do Instagram?", criado_em: h(89) },
+    { papel: "lead", texto: "Pode pedir pro Lucas me chamar, meu WhatsApp é 27 98888-0000, à tarde.", criado_em: h(80) },
+    { papel: "vendedor", texto: "Combinado, Marina! O Lucas vai te chamar no WhatsApp à tarde, em horário comercial.", criado_em: h(79) },
+  ];
+}
+iniciar();
+</script>
+</body>
+</html>
