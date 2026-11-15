@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Demo Lúmen · Calendário de Conteúdo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&family=Fredoka:wght@500;600;700&family=Playfair+Display:wght@700;800&family=Sora:wght@600;700;800&family=Cormorant+Garamond:wght@600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+/* Lúmen: fundo grafite, acento lima da marca. Layout: seletor de negócio > resumo do plano > calendário | perfil no Instagram */
+:root{
+  --bg:#0B0C0E; --bg2:#111316; --card:#16181C; --card2:#1c1f24; --line:#2A2E35;
+  --tx:#F2F4F0; --tx2:#A3A8A0; --ac:#C8FF4D; --pub:#22c55e; --agd:#3D7BFF;
+  --fui:"DM Sans",system-ui,-apple-system,"Segoe UI",sans-serif; --fmono:"JetBrains Mono",ui-monospace,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--tx);font-family:var(--fui);-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+.topo{border-bottom:1px solid var(--line);background:rgba(11,12,14,.92);position:sticky;top:0;z-index:5;backdrop-filter:blur(10px)}
+.topo .in{max-width:1180px;margin:0 auto;padding:12px 16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.logo{display:flex;align-items:center;gap:9px}.logo svg{width:32px;height:32px}
+.logo b{font-size:18px;font-weight:700;letter-spacing:-.3px}.logo b i{color:var(--ac);font-style:normal}
+.logo small{display:block;font-size:9.5px;letter-spacing:2px;color:var(--tx2)}
+.negocios{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:transparent;border-radius:999px;padding:8px 14px;font-size:13.5px;color:var(--tx2)}
+.chip.on{background:var(--ac);border-color:var(--ac);color:#0B0C0E;font-weight:700}
+main{max-width:1180px;margin:0 auto;padding:20px 16px 70px;display:flex;flex-direction:column;gap:18px}
+.resumo{display:flex;gap:16px;align-items:flex-end;justify-content:space-between;flex-wrap:wrap}
+.resumo h1{font-size:clamp(22px,3.4vw,30px);font-weight:700;letter-spacing:-.6px;text-wrap:balance}
+.resumo p{color:var(--tx2);font-size:14px;margin-top:4px;max-width:62ch}
+.aviso{font-size:12px;color:var(--tx2);border:1px dashed var(--line);border-radius:10px;padding:6px 10px}
+.kpis{display:flex;gap:8px;flex-wrap:wrap}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 14px;min-width:120px}
+.kpi b{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums}.kpi span{display:block;font-size:12px;color:var(--tx2)}
+.vistas{display:flex;gap:6px}
+.vistas .chip.on{background:var(--tx);border-color:var(--tx)}
+.leg{display:flex;gap:12px;font-size:12.5px;color:var(--tx2);align-items:center;flex-wrap:wrap}
+.leg i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:middle}
+.barra{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+/* calendário */
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+.cal .sem{font-size:11px;letter-spacing:1.5px;color:var(--tx2);text-transform:uppercase;font-family:var(--fmono);padding:0 4px 2px}
+.dia{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:7px;min-height:132px;display:flex;flex-direction:column;gap:6px;text-align:left;position:relative}
+.dia:hover{border-color:#4a505a}
+.dia.vazio{background:transparent;border-style:dashed;opacity:.35;pointer-events:none}
+.dia.hoje{border-color:var(--ac);box-shadow:0 0 0 1px var(--ac) inset}
+.dia .num{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;font-weight:700;font-variant-numeric:tabular-nums}
+.dia .num em{font-style:normal;font-size:10px;font-weight:500;color:var(--tx2)}
+.dia .st{width:7px;height:7px;border-radius:50%}
+.miniaturas{display:flex;gap:4px;flex-wrap:wrap}
+.mini{width:calc(50% - 2px);border-radius:7px;overflow:hidden;border:1px solid rgba(255,255,255,.08);background:#000;padding:0;position:relative}
+.mini.feed{aspect-ratio:4/5}.mini.vert{aspect-ratio:9/16}
+.mini .ico{position:absolute;top:3px;right:3px;background:rgba(0,0,0,.6);border-radius:999px;font-size:8.5px;padding:1px 5px;color:#fff;font-weight:700;letter-spacing:.3px}
+.storyb{margin-top:auto;display:flex;align-items:center;gap:5px;font-size:11px;color:var(--tx2);background:var(--card2);border:1px solid var(--line);border-radius:999px;padding:3px 8px 3px 3px;width:max-content;max-width:100%}
+.storyb span.r{width:16px;height:16px;border-radius:50%;background:conic-gradient(#ffb03a,#ff3d77,#a64dff,#ffb03a);padding:2px;display:block;flex:none}
+.storyb span.r i{display:block;width:100%;height:100%;border-radius:50%;background:var(--card2)}
+@media(max-width:760px){
+  .cal{gap:3px}.dia{min-height:70px;padding:4px;border-radius:8px}
+  .dia .num em{display:none}.miniaturas .mini{width:100%}.miniaturas .mini:nth-child(n+2){display:none}
+  .storyb{padding:2px;font-size:0;gap:0}.cal .sem{font-size:9px;letter-spacing:.5px;padding:0}
+}
+/* perfil instagram */
+.perfilwrap{display:grid;grid-template-columns:minmax(0,400px) minmax(0,1fr);gap:28px;align-items:start}
+@media(max-width:860px){.perfilwrap{grid-template-columns:1fr}}
+.fone{background:#000;border:10px solid #1d2026;border-radius:44px;overflow:hidden;max-width:400px;width:100%;margin:0 auto;box-shadow:0 30px 80px rgba(0,0,0,.5)}
+.ig{background:#000;color:#f5f5f5;font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;height:760px;overflow-y:auto;scrollbar-width:none}
+.ig::-webkit-scrollbar{display:none}
+.ig .hdr{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 6px;font-weight:700;font-size:18px;position:sticky;top:0;background:#000;z-index:2}
+.ig .hdr span{display:flex;gap:16px;font-weight:400}
+.ig .top{display:flex;align-items:center;gap:22px;padding:8px 16px}
+.av{width:86px;height:86px;border-radius:50%;padding:3px;background:conic-gradient(#ffb03a,#ff3d77,#a64dff,#ffb03a);flex:none;border:none}
+.av>div{width:100%;height:100%;border-radius:50%;border:3px solid #000;overflow:hidden;display:grid;place-items:center}
+.ig .stats{display:flex;flex:1;justify-content:space-around;text-align:center;font-size:13px}
+.ig .stats b{display:block;font-size:17px}
+.ig .bio{padding:4px 16px 10px;font-size:13.5px;line-height:1.4}
+.ig .bio b{display:block}.ig .bio .cat{color:#a8a8a8}.ig .bio a{color:#e0f1ff;text-decoration:none;font-weight:600}
+.ig .btns{display:flex;gap:6px;padding:0 16px 12px}
+.ig .btns div{flex:1;background:#262626;border-radius:8px;padding:7px;text-align:center;font-size:13.5px;font-weight:600}
+.ig .btns div.seg{background:#0095f6}
+.ig .dest{display:flex;gap:14px;padding:4px 16px 14px;overflow-x:auto;scrollbar-width:none}
+.ig .dest div{text-align:center;font-size:11.5px;flex:none}
+.ig .dest i{display:grid;place-items:center;width:62px;height:62px;border-radius:50%;border:1px solid #363636;padding:3px;margin-bottom:4px}
+.ig .dest i>span{display:block;width:100%;height:100%;border-radius:50%;overflow:hidden}
+.ig .tabs{display:flex;border-top:1px solid #262626}
+.ig .tabs div{flex:1;text-align:center;padding:10px;font-size:12px;color:#8e8e8e;border-bottom:1px solid transparent}
+.ig .tabs div.on{color:#f5f5f5;border-bottom-color:#f5f5f5}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px}
+.grid button{border:none;padding:0;aspect-ratio:3/4;overflow:hidden;position:relative;background:#111}
+.grid button .arte{height:100%;aspect-ratio:auto}
+.grid .tp{position:absolute;top:5px;right:6px;color:#fff;font-size:12px;text-shadow:0 1px 3px rgba(0,0,0,.6)}
+.grid .ag{position:absolute;left:5px;bottom:5px;background:rgba(61,123,255,.9);color:#fff;border-radius:999px;font-size:9.5px;font-weight:700;padding:2px 6px}
+.lado h2{font-size:20px;letter-spacing:-.3px}
+.lado p{color:var(--tx2);font-size:14px;line-height:1.55;margin-top:6px;max-width:58ch}
+.lado ul{margin:14px 0 0 18px;color:var(--tx2);font-size:14px;line-height:1.7}
+.lado ul b{color:var(--tx)}
+/* modais */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:30;display:grid;place-items:center;padding:14px}
+.modal[hidden]{display:none}
+.caixa{background:var(--bg2);border:1px solid var(--line);border-radius:20px;max-width:980px;width:100%;max-height:94vh;overflow:auto;position:relative}
+.fechar{position:absolute;top:10px;right:10px;width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--card);font-size:18px;z-index:3}
+.visor{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:0}
+@media(max-width:820px){.visor{grid-template-columns:1fr}}
+.palco{background:#000;display:grid;place-items:center;padding:18px;position:relative;min-height:300px}
+.quadro{position:relative;width:min(100%,460px);border-radius:12px;overflow:hidden}
+.quadro.vert{width:min(100%,330px)}
+.quadro .trilho{display:flex;transition:transform .35s ease}
+.quadro .trilho>.arte{flex:0 0 100%}
+.nav{position:absolute;top:50%;transform:translateY(-50%);width:34px;height:34px;border-radius:50%;border:none;background:rgba(255,255,255,.88);color:#111;font-size:18px;display:grid;place-items:center;z-index:2}
+.nav.e{left:8px}.nav.d{right:8px}.nav[disabled]{opacity:0;pointer-events:none}
+.pontos{display:flex;gap:5px;justify-content:center;margin-top:10px}
+.pontos i{width:6px;height:6px;border-radius:50%;background:#555}.pontos i.on{background:#3d9bff}
+.barras{position:absolute;top:8px;left:8px;right:8px;display:flex;gap:3px;z-index:3}
+.barras i{flex:1;height:2.5px;background:rgba(255,255,255,.35);border-radius:2px;overflow:hidden}
+.barras i b{display:block;height:100%;width:0;background:#fff}
+.som{position:absolute;bottom:10px;left:10px;right:10px;z-index:3;display:flex;align-items:center;gap:8px;color:#fff;font-size:11.5px;text-shadow:0 1px 3px rgba(0,0,0,.7)}
+.eq{display:flex;gap:2px;align-items:flex-end;height:12px}.eq i{width:3px;background:#fff;animation:eq .9s ease-in-out infinite}
+.eq i:nth-child(2){animation-delay:.2s}.eq i:nth-child(3){animation-delay:.4s}
+@keyframes eq{0%,100%{height:3px}50%{height:12px}}
+.tapz{position:absolute;inset:0;display:flex;z-index:2}.tapz button{flex:1;border:none;background:transparent}
+.info{padding:22px 20px;display:flex;flex-direction:column;gap:12px;font-size:14px}
+.info .tags{display:flex;gap:6px;flex-wrap:wrap}
+.tag{font-size:11.5px;font-weight:700;border-radius:999px;padding:3px 9px;border:1px solid var(--line);background:var(--card2)}
+.tag.pub{color:#86efac;border-color:rgba(34,197,94,.45)}.tag.agd{color:#a9c4ff;border-color:rgba(61,123,255,.5)}
+.info h3{font-size:18px;line-height:1.3;text-wrap:balance}
+.legenda{white-space:pre-line;color:var(--tx2);line-height:1.55;font-size:13.5px}
+.legenda .h{color:#7fb2ff}
+.dica{font-size:12.5px;color:var(--tx2);border-top:1px solid var(--line);padding-top:10px}
+.lista{padding:22px;display:flex;flex-direction:column;gap:12px}
+.lista h3{font-size:19px}
+.itens{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.item{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:8px;text-align:left;display:flex;flex-direction:column;gap:7px}
+.item .th{border-radius:9px;overflow:hidden}
+.item b{font-size:13px;line-height:1.3}.item span{font-size:11.5px;color:var(--tx2)}
+
+/* ============ ARTES (escalam pelo tamanho do quadro: cqw) ============ */
+.arte{container-type:inline-size;position:relative;width:100%;overflow:hidden;background:var(--a-bg);color:var(--a-tx);font-family:var(--a-fb)}
+.arte.feed{aspect-ratio:4/5}.arte.vert{aspect-ratio:9/16}
+.arte .tit{font-family:var(--a-fd);line-height:.95;letter-spacing:var(--a-ls);text-transform:var(--a-tt)}
+.arte svg{display:block}
+.arte .marca{position:absolute;left:6cqw;bottom:5cqw;font-family:var(--a-fd);font-size:4.2cqw;letter-spacing:.3cqw;text-transform:uppercase;opacity:.9;display:flex;align-items:center;gap:1.6cqw}
+.arte .marca i{width:2.4cqw;height:2.4cqw;border-radius:50%;background:var(--a-ac)}
+.arte .pag{position:absolute;right:6cqw;bottom:5cqw;font-size:3.6cqw;opacity:.75;font-family:var(--a-fb);font-weight:700}
+.arte .blob{position:absolute;border-radius:50%;background:var(--a-ac);opacity:var(--a-blob)}
+/* capa */
+.t-capa .tit{position:absolute;left:6cqw;right:6cqw;top:8cqw;font-size:13.5cqw}
+.t-capa .sub{position:absolute;left:6cqw;right:20cqw;top:var(--subtop,48cqw);font-size:4.6cqw;font-weight:500;line-height:1.3;opacity:.9}
+.t-capa .il{position:absolute;right:-4cqw;bottom:6cqw;width:76cqw}
+.t-capa .faixa{position:absolute;left:6cqw;top:4cqw;font-size:3.4cqw;font-weight:700;letter-spacing:.4cqw;text-transform:uppercase;color:var(--a-ac2)}
+/* item */
+.t-item .n{position:absolute;left:6cqw;top:6cqw;font-family:var(--a-fd);font-size:26cqw;line-height:.85;color:var(--a-ac)}
+.t-item .tit{position:absolute;left:6cqw;right:6cqw;top:38cqw;font-size:9.5cqw}
+.t-item .tx{position:absolute;left:6cqw;right:30cqw;top:var(--txtop,64cqw);font-size:4.8cqw;line-height:1.35;opacity:.92}
+.t-item .il{position:absolute;right:-6cqw;bottom:9cqw;width:46cqw}
+/* oferta */
+.t-oferta .tit{position:absolute;left:6cqw;right:6cqw;top:8cqw;font-size:11cqw}
+.t-oferta .desc{position:absolute;left:6cqw;right:40cqw;top:34cqw;font-size:4.5cqw;line-height:1.35;opacity:.9}
+.t-oferta .preco{position:absolute;left:6cqw;top:62cqw;background:var(--a-ac);color:var(--a-onac);border-radius:var(--a-rad);padding:2cqw 4cqw;transform:rotate(-3deg);font-family:var(--a-fd)}
+.t-oferta .preco small{display:block;font-family:var(--a-fb);font-size:3.4cqw;font-weight:700;letter-spacing:.2cqw;text-transform:uppercase}
+.t-oferta .preco b{font-size:13cqw;font-weight:400;line-height:1}
+.t-oferta .il{position:absolute;right:-4cqw;bottom:8cqw;width:54cqw}
+/* cta */
+.t-cta{background:var(--a-ac)!important;color:var(--a-onac)!important}
+.t-cta .tit{position:absolute;left:6cqw;right:6cqw;top:30cqw;font-size:15cqw}
+.t-cta .tx{position:absolute;left:6cqw;right:6cqw;top:74cqw;font-size:5cqw;font-weight:700}
+.t-cta .bt{position:absolute;left:6cqw;top:92cqw;background:var(--a-onac);color:var(--a-ac);border-radius:999px;padding:3cqw 6cqw;font-size:4.8cqw;font-weight:700}
+.t-cta .marca i{background:var(--a-onac)}
+/* stories e reels (9:16) */
+.vert .tit{font-size:15cqw}
+.s-txt{position:absolute;left:7cqw;right:7cqw}
+.s-eye{font-size:4.2cqw;font-weight:700;letter-spacing:.5cqw;text-transform:uppercase;color:var(--a-ac2)}
+.s-big{font-family:var(--a-fd);font-size:16cqw;line-height:.95;letter-spacing:var(--a-ls);text-transform:var(--a-tt);margin-top:2cqw}
+.s-p{font-size:5.4cqw;line-height:1.35;margin-top:4cqw;opacity:.92}
+.s-il{position:absolute;left:8cqw;right:8cqw;bottom:22cqw}
+.s-chip{display:inline-block;background:var(--a-ac);color:var(--a-onac);border-radius:999px;padding:2.4cqw 5cqw;font-weight:700;font-size:5cqw;margin-top:5cqw}
+.poll{position:absolute;left:10cqw;right:10cqw;top:96cqw;background:#fff;color:#111;border-radius:5cqw;padding:5cqw;box-shadow:0 2cqw 6cqw rgba(0,0,0,.25);font-family:"DM Sans",sans-serif}
+.poll b{display:block;text-align:center;font-size:5.2cqw;margin-bottom:3cqw}
+.poll div{display:flex;gap:3cqw}.poll span{flex:1;text-align:center;border:.5cqw solid #ddd;border-radius:3cqw;padding:3.2cqw 0;font-weight:700;font-size:5.2cqw}
+.menu{list-style:none;margin-top:5cqw;display:flex;flex-direction:column;gap:2.6cqw}
+.menu li{display:flex;justify-content:space-between;gap:3cqw;font-size:5.4cqw;border-bottom:.4cqw dashed currentColor;padding-bottom:2cqw;opacity:.95}
+.menu li b{font-family:var(--a-fd);font-weight:400}
+.cena{position:absolute;inset:0;opacity:0;animation:cena var(--dur) linear infinite;animation-delay:var(--del)}
+.cena .il{position:absolute;left:6cqw;right:6cqw;bottom:20cqw;animation:zoom var(--dur) ease-in-out infinite;animation-delay:var(--del)}
+@keyframes cena{0%{opacity:0}2%{opacity:1}23%{opacity:1}25%,100%{opacity:0}}
+@keyframes zoom{0%{transform:scale(1.15) rotate(-2deg)}25%{transform:scale(1) rotate(1deg)}100%{transform:scale(1)}}
+.parado .cena{animation:none;opacity:0}.parado .cena:first-of-type{opacity:1}.parado .cena .il{animation:none}
+.play{position:absolute;inset:0;display:grid;place-items:center;z-index:2;pointer-events:none}
+.play i{width:16cqw;height:16cqw;border-radius:50%;background:rgba(0,0,0,.45);display:grid;place-items:center;color:#fff;font-size:7cqw;font-style:normal}
+.arte .foto{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.arte .veu-top{position:absolute;inset:0;background:linear-gradient(to bottom,var(--a-bg) 0%,var(--a-bg) var(--solid,30%),transparent var(--fade,62%))}
+.arte .veu-esc{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,.62) 0%,rgba(0,0,0,.08) 38%,rgba(0,0,0,.1) 55%,rgba(0,0,0,.72) 100%)}
+.arte .moldura{position:absolute;right:6cqw;bottom:13cqw;width:48cqw;height:56cqw;border-radius:var(--a-rad);overflow:hidden;box-shadow:0 2cqw 6cqw rgba(0,0,0,.35)}
+.arte .moldura img{width:100%;height:100%;object-fit:cover;display:block}
+.arte.foto-txt{color:#fff}.arte.foto-txt .marca{color:#fff}
+.cena .foto{animation:zoom var(--dur) ease-in-out infinite;animation-delay:var(--del)}
+.parado .cena .foto{animation:none}
+.menu-card{background:rgba(0,0,0,.55);backdrop-filter:blur(2px);border-radius:5cqw;padding:5cqw;margin-top:5cqw}
+.fotoav{width:100%;height:100%;object-fit:cover;display:block}
+.foto.fb{position:absolute;inset:0;display:grid;place-items:center;background:radial-gradient(circle at 60% 38%,rgba(201,163,90,.55),transparent 62%),linear-gradient(160deg,#1d3029,#0d1612)}
+.foto.fb svg{width:46%;max-height:70%;filter:drop-shadow(0 2cqw 4cqw rgba(0,0,0,.4))}
+.moldura .foto.fb,.av .foto.fb,.dest .foto.fb{position:absolute}
+.cta-final{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px 20px;margin-top:6px}
+.cta-final b{display:block;font-size:17px}.cta-final span{color:var(--tx2);font-size:13.5px}.cta-final a{text-decoration:none;padding:11px 18px}
+@media (prefers-reduced-motion:reduce){.cena,.cena .il,.eq i{animation:none!important}.cena:first-of-type{opacity:1}}
+</style>
+</head>
+<body>
+<header class="topo"><div class="in">
+  <div class="logo"><svg viewBox="0 0 124 124" aria-hidden="true"><rect x="2" y="2" width="120" height="120" rx="32" fill="#16181C" stroke="#2A2E35" stroke-width="3"/><circle cx="62" cy="62" r="13" fill="#C8FF4D"/><path d="M62 24V36M62 88V100M24 62H36M88 62H100M35 35L43 43M81 81L89 89M89 35L81 43M43 81L35 89" stroke="#C8FF4D" stroke-width="7" stroke-linecap="round"/></svg><div><b>lúmen<i>.</i></b><small>MARKETING DIGITAL</small></div></div>
+  <nav class="negocios" id="negocios" aria-label="Escolha o negócio"></nav>
+</div></header>
+
+<main>
+  <section class="resumo">
+    <div><h1 id="titulo"></h1><p id="subtit"></p></div>
+    <div class="kpis" id="kpis"></div>
+  </section>
+  <div class="barra">
+    <div class="vistas" role="tablist">
+      <button class="chip on" id="vCal" role="tab">Calendário de novembro</button>
+      <button class="chip" id="vIg" role="tab">Como fica no Instagram</button>
+    </div>
+    <div class="leg"><span><i style="background:var(--pub)"></i>Publicado</span><span><i style="background:var(--agd)"></i>Agendado</span><span class="aviso">Marca fictícia, criada para demonstração</span></div>
+  </div>
+  <section id="telaCal"></section>
+  <section id="telaIg" hidden></section>
+  <section class="cta-final"><div><b>Quer o Instagram da sua empresa assim, todo mês?</b><span>Postagens prontas, aprovação pelo celular e publicação automática.</span></div><a class="chip on" href="https://sejalumen.com.br/" target="_blank" rel="noopener">Falar com a Lúmen</a></section>
+</main>
+
+<div class="modal" id="modal" hidden><div class="caixa" id="caixa"></div></div>
+
+<script>
+const IL = {};
+/* ================= marcas ================= */
+const MARCAS = {
+  burger:{
+    id:"burger", rotulo:"Hamburgueria", nome:"Brasa Burger", handle:"brasaburger.demo",
+    resumo:"cardápio, promoções e bastidores", ctaTit:"Bateu a fome?", ctaTx:"Peça pelo link da bio",
+    cat:"Hamburgueria", bio:["Smash burger na brasa · Linhares/ES","Delivery 18h às 23h30 · fechado às segundas","Peça pelo link 👇"], link:"brasaburger.com.br/pedido",
+    seguidores:"3.184", seguindo:"412", destaques:["Cardápio","Combos","Delivery","Bastidores"],
+    vars:{"--a-bg":"#1b1311","--a-tx":"#fff4e3","--a-ac":"#ff6b1a","--a-ac2":"#ffc53d","--a-onac":"#1b1311","--a-fd":"Anton,Impact,sans-serif","--a-fb":"'DM Sans',sans-serif","--a-ls":".2cqw","--a-tt":"uppercase","--a-rad":"2cqw","--a-blob":".14"},
+    alt:{"--a-bg":"#ff6b1a","--a-tx":"#1b1311","--a-ac":"#1b1311","--a-ac2":"#fff4e3","--a-onac":"#ffc53d"},
+    ilus:["burger","fries","combo","drink","flame"], avatar:"burger",
+    trilha:"Groove brasileiro · trilha aprovada",
+    carrosseis:[
+      {t:"Smash perfeito em 4 passos", il:"burger", itens:[["Blend da casa","80% carne, 20% gordura. É o que deixa suculento."],["Bola de 90 g","Na chapa bem quente, sem medo."],["Prensa firme","10 segundos para criar a crosta."],["Cheddar e tampa","Derrete em 30 segundos. Pronto."]]},
+      {t:"3 combos até R$ 35", il:"combo", ofertas:[["Combo Clássico","Smash + batata + refri lata","29,90","combo"],["Combo Duplo","Duplo cheddar + batata + refri","34,90","burger"],["Combo Kids","Mini smash + batata + suco","24,90","fries"]]},
+      {t:"Qual é o seu smash?", il:"burger", itens:[["Clássico","Carne, queijo, picles e molho da casa."],["Bacon","Bacon crocante e maionese defumada."],["Duplo cheddar","Duas carnes, muito cheddar."],["Veggie","Grão-de-bico e cebola caramelizada."]]},
+      {t:"Do pedido à sua porta em 30 min", il:"drink", itens:[["Peça pelo link","Cardápio completo e pagamento por Pix."],["Preparo na hora","Seu smash só vai pra chapa quando você pede."],["Embalagem térmica","Pão não amolece, batata não murcha."],["Chega quentinho","Média de 30 minutos no centro."]]},
+      {t:"Molhos da casa", il:"fries", itens:[["Maionese verde","Ervas frescas, receita da casa."],["Barbecue","Feito com rapadura."],["Cheddar cremoso","Pra afogar a batata."],["Picles","Conserva própria, crocante."]]},
+      {t:"Batata: rústica ou palito?", il:"fries", itens:[["Rústica","Com casca, alecrim e páprica."],["Palito","Fininha e sequinha."]], fim:"Vote nos stories de hoje"},
+      {t:"Bastidores: o nosso pão", il:"burger", itens:[["Brioche artesanal","Feito por uma padaria parceira do bairro."],["Selado na manteiga","Por isso a borda dourada."],["Entregue todo dia","Nada de pão de ontem."]]},
+      {t:"Terça do duplo", il:"burger", ofertas:[["Duplo cheddar","Toda terça, no delivery e no balcão","26,90","burger"]], itens:[["Como funciona","Vale só às terças, das 18h às 23h30."]]},
+      {t:"5 acompanhamentos que combinam", il:"fries", itens:[["Batata rústica",""],["Onion rings",""],["Nuggets da casa",""],["Mandioca frita",""],["Milk-shake",""]]},
+      {t:"Esquenta Black Friday", il:"flame", itens:[["Sexta, dia 27","Os 3 combos mais pedidos com preço especial."],["Só no delivery","Peça pelo link da bio."],["Ative o lembrete","Avisamos aqui quando abrir."]]},
+      {t:"Como pedir na Black Friday", il:"drink", itens:[["Abra o link da bio","O cardápio já vem com os preços da Black."],["Escolha o combo","Tem opção a partir de R$ 21,90."],["Pague por Pix","E acompanhe o pedido pelo WhatsApp."]]},
+      {t:"Black Friday Brasa", il:"combo", ofertas:[["Combo Clássico","Só hoje","21,90","combo"],["Combo Duplo","Só hoje","27,90","burger"],["2 smashes + batata","Pra dividir","44,90","fries"]]},
+    ],
+    stories:{0:["promo","Domingo em família","Combo para 4 pessoas","4 smashes + 2 batatas grandes + refri 2 L","89,90","combo"],1:["horario","Hoje a chapa descansa","Voltamos amanhã às 18h","Peça pelo link da bio na terça","","flame"],2:["promo","Terça do duplo","Duplo cheddar","Só hoje, das 18h às 23h30","26,90","burger"],3:["enquete","Vote aqui","Cheddar ou bacon?","","","burger"],4:["menu","Cardápio do dia","O que sai da chapa hoje","","","burger"],5:["horario","Sextou!","Pedidos abertos das 18h às 23h30","Entrega em 30 min no centro","","combo"],6:["bastidor","Saindo da chapa","Sábado de casa cheia","Garanta o seu antes das 21h","","burger"]},
+    menu:[["Clássico","24"],["Bacon","28"],["Duplo cheddar","31"],["Veggie","26"]],
+    reels:[
+      {t:"Smash na chapa", cenas:[["Ouviu esse barulho?","flame"],["Prensa por 10 segundos","burger"],["Cheddar derretendo","burger"],["Peça pelo link da bio","combo"]]},
+      {t:"Montando o Combo Duplo", cenas:[["Duas carnes","burger"],["Batata sequinha","fries"],["Refri gelado","drink"],["R$ 34,90 no delivery","combo"]]},
+      {t:"Do pedido à sua porta", cenas:[["Pedido chegou 18:42","drink"],["Chapa quente","flame"],["Embalagem térmica","combo"],["Na sua casa 19:10","burger"]]},
+      {t:"Black Friday Brasa: é hoje", cenas:[["Black Friday","flame"],["Combo Clássico R$ 21,90","combo"],["Só no delivery","drink"],["Link na bio","burger"]]},
+    ],
+  },
+  pet:{
+    id:"pet", rotulo:"Pet shop", nome:"Patinhas Pet", handle:"patinhaspet.demo",
+    resumo:"horários livres, dicas e antes e depois", ctaTit:"Agende o banho", ctaTx:"Chame no WhatsApp do link da bio",
+    cat:"Pet shop · banho e tosa", bio:["Banho e tosa com carinho em Linhares/ES","Seg a sáb 8h às 18h · táxi dog","Agende pelo WhatsApp 👇"], link:"wa.me/patinhaspet",
+    seguidores:"2.457", seguindo:"318", destaques:["Antes e depois","Preços","Táxi dog","Dicas"],
+    vars:{"--a-bg":"#e8f5ff","--a-tx":"#12304f","--a-ac":"#2f8cff","--a-ac2":"#ff7b6b","--a-onac":"#ffffff","--a-fd":"Fredoka,'DM Sans',sans-serif","--a-fb":"'DM Sans',sans-serif","--a-ls":"-.2cqw","--a-tt":"none","--a-rad":"5cqw","--a-blob":".16"},
+    alt:{"--a-bg":"#ffd23f","--a-tx":"#12304f","--a-ac":"#12304f","--a-ac2":"#ff5b4a","--a-onac":"#ffd23f"},
+    ilus:["dog","cat","bath","scissor","bone"], avatar:"dog",
+    trilha:"Indie otimista · trilha aprovada",
+    carrosseis:[
+      {t:"5 sinais de que é hora do banho", il:"bath", itens:[["Cheiro forte","Mesmo depois de secar."],["Coceira","Ele se coça mais que o normal."],["Pelo embolado","Os nós puxam a pele."],["Patinhas sujas","Rua e quintal deixam marcas."],["Faz mais de 15 dias","É o intervalo ideal para a maioria."]]},
+      {t:"Pacotes do mês", il:"dog", ofertas:[["Banho porte P","Com secagem e perfume","49,90","dog"],["4 banhos no mês","Um por semana, porte P","159,00","bath"],["Banho + tosa","Tosa higiênica inclusa","89,90","scissor"]]},
+      {t:"Tosa higiênica ou completa?", il:"scissor", itens:[["Higiênica","Patinhas, barriga e região íntima. A cada 15 dias."],["Completa","Corpo todo na máquina ou tesoura. A cada 45 dias."]]},
+      {t:"Pulgas no calor: 4 cuidados", il:"dog", itens:[["Antipulgas em dia","Siga o intervalo do produto."],["Lave a caminha","Água quente, toda semana."],["Aspire a casa","Ovos ficam nos cantos."],["Banho com produto certo","Pergunte na recepção."]]},
+      {t:"Táxi dog: como funciona", il:"bath", itens:[["Agende pelo WhatsApp","Diga o endereço e o horário."],["Buscamos em casa","Caixa de transporte higienizada."],["Banho e mimo","Seu pet volta cheiroso."],["Entregamos de volta","Sem você sair de casa."]]},
+      {t:"Preço por porte", il:"dog", ofertas:[["Porte P","Até 10 kg","49,90","dog"],["Porte M","De 10 a 25 kg","64,90","dog"],["Porte G","Acima de 25 kg","84,90","bath"]]},
+      {t:"Primeiro banho do filhote", il:"dog", itens:[["Depois das vacinas","Espere o veterinário liberar."],["Água morna","E secagem com secador baixo."],["Visita de adaptação","O primeiro é mais curtinho."]]},
+      {t:"Gato também toma banho?", il:"cat", itens:[["Toma, sim","Raças de pelo longo pedem mais."],["Sem estresse","Sala separada dos cães."],["Escovação","É o que mais ajuda no dia a dia."]]},
+      {t:"Hidratação de pelagem", il:"dog", itens:[["Brilho","Pelo macio por mais tempo."],["Menos nós","Facilita a escovação."],["Pele protegida","Ótimo no verão."]]},
+      {t:"Esquenta Black Friday Pet", il:"bath", itens:[["Sexta, dia 27","Pacotes com preço especial."],["Vagas limitadas","A agenda abre na quarta."],["Ative o lembrete","Avisamos por aqui."]]},
+      {t:"Como agendar em 1 minuto", il:"dog", itens:[["Toque no link da bio","Abre o nosso WhatsApp."],["Diga o porte","P, M ou G."],["Escolha o horário","Confirmamos na hora."]]},
+      {t:"Black Friday Pet", il:"dog", ofertas:[["4 banhos porte P","Só hoje","129,00","bath"],["Banho + tosa","Só hoje","69,90","scissor"],["Hidratação","Na compra do banho","19,90","dog"]]},
+    ],
+    stories:{0:["horario","Bom domingo!","Hoje estamos fechados","Agende a semana pelo WhatsApp","","dog"],1:["horario","Horários livres hoje","9h · 10h30 · 15h","Chame no WhatsApp para reservar","","bath"],2:["dica","Dica do dia","Escove 3 vezes por semana","Evita nós e espalha a oleosidade natural","","scissor"],3:["enquete","Vote aqui","Laço ou bandana?","","","dog"],4:["bastidor","Chegou do banho!","Cheiroso e pronto pra casa","Mande foto do seu pet","","dog"],5:["promo","Pacote do mês","4 banhos porte P","Um por semana","159,00","bath"],6:["horario","Sábado quase cheio","Últimas vagas: 14h e 16h","Reserve pelo WhatsApp","","cat"]},
+    menu:[["Banho P","49,90"],["Banho M","64,90"],["Tosa higiênica","35"],["Hidratação","29"]],
+    reels:[
+      {t:"Do banho ao laço", cenas:[["Chegou assim…","dog"],["Banho com espuma","bath"],["Tosa caprichada","scissor"],["Saiu assim!","dog"]]},
+      {t:"Dia de spa", cenas:[["Hidratação","bath"],["Secagem sem susto","dog"],["Perfume suave","bone"],["Agende o seu","dog"]]},
+      {t:"Táxi dog na rua", cenas:[["Buscamos em casa","dog"],["Banho e mimo","bath"],["Entregamos cheiroso","dog"],["Link na bio","bone"]]},
+      {t:"Black Friday Pet: é hoje", cenas:[["Black Friday","dog"],["4 banhos R$ 129","bath"],["Vagas limitadas","scissor"],["Chame no WhatsApp","dog"]]},
+    ],
+  },
+};
+
+MARCAS.barba = {
+  id:"barba", rotulo:"Barbearia", nome:"Fio Reto Barbearia", handle:"fioreto.demo",
+  resumo:"horários livres, preços e transformações", ctaTit:"Bora dar um tapa no visual?", ctaTx:"Agende pelo link da bio",
+  cat:"Barbearia", bio:["Corte, barba e degradê em Linhares/ES","Ter a sáb 9h às 20h · plano mensal","Agende pelo link 👇"], link:"fioreto.com.br/agenda",
+  seguidores:"4.026", seguindo:"287", destaques:["Cortes","Preços","Plano","Produtos"],
+  vars:{"--a-bg":"#13201b","--a-tx":"#f3ede1","--a-ac":"#c9a35a","--a-ac2":"#e7cf9b","--a-onac":"#13201b","--a-fd":"'Playfair Display',Georgia,serif","--a-fb":"'DM Sans',sans-serif","--a-ls":"-.2cqw","--a-tt":"none","--a-rad":"1.5cqw","--a-blob":".12"},
+  alt:{"--a-bg":"#c9a35a","--a-tx":"#13201b","--a-ac":"#13201b","--a-ac2":"#13201b","--a-onac":"#c9a35a"},
+  trilha:"House brasileiro · trilha aprovada",
+  carrosseis:[
+    {t:"Degradê: 4 tipos para escolher", itens:[["Low fade","Começa baixo, perto da orelha. Discreto."],["Mid fade","Na altura das têmporas. O mais pedido."],["High fade","Sobe até o topo da cabeça. Contraste forte."],["Taper","Só nas costeletas e na nuca. Clássico."]]},
+    {t:"Tabela do mês", ofertas:[["Corte","Máquina ou tesoura, com lavagem","45,00","corte"],["Corte + barba","Com toalha quente","70,00","barba"],["Plano mensal","Cortes ilimitados no mês","129,00","cliente"]]},
+    {t:"Barba em dia: 4 cuidados", itens:[["Sabonete próprio","O de rosto resseca os fios."],["Óleo todo dia","Hidrata a pele e tira o aspecto de palha."],["Pente, não escova","Desembaraça sem quebrar."],["Aparar a cada 15 dias","Mantém o desenho."]]},
+    {t:"O corte certo para o seu rosto", itens:[["Redondo","Volume em cima e laterais baixas."],["Quadrado","Quase tudo combina. Aposte no degradê."],["Oval","Pode ousar no topete."],["Comprido","Evite muito volume no topo."]]},
+    {t:"Toalha quente faz diferença", itens:[["Abre os poros","A navalha desliza melhor."],["Amacia os fios","Menos repuxo na pele."],["Menos irritação","Adeus vermelhidão depois da barba."]]},
+    {t:"Pomada, cera ou gel?", itens:[["Pomada","Brilho e fixação média."],["Cera","Efeito seco, cabelo natural."],["Gel","Fixação forte, visual molhado."]]},
+    {t:"Agende em 1 minuto", itens:[["Toque no link da bio","A agenda abre na hora."],["Escolha o barbeiro","E o melhor horário pra você."],["Confirme no WhatsApp","Lembrete 2 horas antes."]]},
+    {t:"Terça do corte", ofertas:[["Corte","Toda terça, o dia inteiro","35,00","corte"]], itens:[["Como funciona","Vale só às terças, com horário marcado."]]},
+    {t:"Kit para cuidar em casa", ofertas:[["Óleo de barba","30 ml, fragrância amadeirada","39,90","produtos"],["Pomada modeladora","Efeito matte","34,90","produtos"],["Balm","Hidrata e alinha","29,90","barba"]]},
+    {t:"Esquenta Black Friday", itens:[["Sexta, dia 27","Corte, barba e plano com preço especial."],["Agenda limitada","Abre na quarta pelo link da bio."],["Ative o lembrete","Avisamos aqui quando abrir."]]},
+    {t:"Como funciona o plano mensal", itens:[["Cortes ilimitados","Venha quantas vezes quiser no mês."],["Horário reservado","Prioridade na agenda de sábado."],["Sem fidelidade","Cancele quando quiser."]]},
+    {t:"Black Friday Fio Reto", ofertas:[["Corte + barba","Só hoje","49,90","barba"],["Plano mensal","No primeiro mês","99,00","cliente"],["Kit barba","Óleo + balm","59,90","produtos"]]},
+  ],
+  stories:{0:["horario","Bom domingo","Hoje estamos fechados","Agende a semana pelo link da bio",""],1:["horario","Hoje a casa descansa","Voltamos amanhã às 9h","A agenda da semana já está aberta",""],2:["promo","Terça do corte","Corte por R$ 35","O dia inteiro, com horário marcado","35,00"],3:["enquete","Vote aqui","Degradê ou tesoura?","",""],4:["menu","Tabela de preços","Corte, barba e combo","",""],5:["horario","Sexta lotando","Últimos horários: 18h e 19h","Reserve pelo link da bio",""],6:["bastidor","Sábado de casa cheia","Chegue no horário marcado","Café e água por nossa conta",""]},
+  menu:[["Corte","45"],["Barba","35"],["Corte + barba","70"],["Sobrancelha","15"]],
+  reels:[
+    {t:"Transformação em 30 minutos", cenas:[["Chegou assim…"],["Máquina e degradê"],["Acabamento na navalha"],["Saiu assim!"]]},
+    {t:"Barba na toalha quente", cenas:[["Toalha quente"],["Espuma e navalha"],["Óleo e balm"],["Pronto pro fim de semana"]]},
+    {t:"Um dia na Fio Reto", cenas:[["9h, portas abertas"],["Tesoura e pente"],["Um café enquanto espera"],["Produtos da casa"]]},
+    {t:"Black Friday Fio Reto: é hoje", cenas:[["Black Friday"],["Corte + barba R$ 49,90"],["Agenda limitada"],["Link na bio"]]},
+  ],
+};
+
+MARCAS.soft = {
+  id:"soft", rotulo:"Software house", nome:"Órbita Software", handle:"orbitasoftware.demo",
+  resumo:"bastidores do time, dicas e chamadas para diagnóstico", ctaTit:"Vamos tirar sua empresa da planilha?", ctaTx:"Agende um diagnóstico pelo link da bio",
+  cat:"Software house · sistemas sob medida", bio:["Sistemas web e apps para empresas do ES","Do diagnóstico ao suporte · LGPD","Diagnóstico gratuito 👇"], link:"orbitasoftware.com.br/diagnostico",
+  seguidores:"1.932", seguindo:"244", destaques:["Projetos","Processo","Time","Vagas"],
+  vars:{"--a-bg":"#0b1020","--a-tx":"#eef2ff","--a-ac":"#22d3ee","--a-ac2":"#a78bfa","--a-onac":"#0b1020","--a-fd":"Sora,'DM Sans',sans-serif","--a-fb":"'DM Sans',sans-serif","--a-ls":"-.3cqw","--a-tt":"none","--a-rad":"3cqw","--a-blob":".12"},
+  alt:{"--a-bg":"#22d3ee","--a-tx":"#0b1020","--a-ac":"#0b1020","--a-ac2":"#0b1020","--a-onac":"#22d3ee"},
+  trilha:"Synthwave tech · trilha aprovada",
+  carrosseis:[
+    {t:"4 sinais de que sua empresa precisa de um sistema", itens:[["Planilha que só uma pessoa entende","Se ela sai de férias, tudo para."],["Retrabalho todo dia","A mesma informação digitada em 3 lugares."],["Relatório demora dias","E chega desatualizado."],["Erro que custa caro","Pedido errado, estoque furado."]]},
+    {t:"Planilha ou sistema?", itens:[["Planilha","Rápida para começar, frágil para crescer."],["Sistema","Regras, histórico e acesso por perfil."],["Quando migrar","Quando mais de 3 pessoas mexem no mesmo arquivo."]]},
+    {t:"Como trabalhamos em 4 etapas", itens:[["Diagnóstico","Entendemos o processo antes de escrever código."],["Protótipo","Você clica nas telas antes de investir."],["Desenvolvimento","Entregas a cada 15 dias."],["Suporte","A gente continua depois do lançamento."]]},
+    {t:"Exemplo de projeto: app de pedidos", itens:[["O problema","Pedidos por WhatsApp e papel, com erro de digitação."],["A solução","App para vendedores com catálogo e estoque."],["Na prática","Pedido chega pronto no sistema do escritório."]]},
+    {t:"MVP em 60 dias: o que dá para entregar", itens:[["Cadastro e login","Com perfis de acesso."],["O fluxo principal","A tela que resolve a dor."],["Relatório básico","Os números que o dono olha."],["Base para crescer","Sem precisar refazer depois."]]},
+    {t:"Integrações que mais pedem", itens:[["ERP","Puxa produtos, clientes e preços."],["WhatsApp","Avisos automáticos para o cliente."],["Pix e boleto","Cobrança direto do sistema."]]},
+    {t:"LGPD no seu sistema: 4 cuidados", itens:[["Acesso por perfil","Cada um vê só o que precisa."],["Registro de ações","Quem mudou o quê e quando."],["Backup diário","Fora do servidor principal."],["Consentimento","Guardado junto com o cadastro."]]},
+    {t:"Bastidores: uma semana no time", itens:[["Segunda","Planejamento com o cliente."],["Quarta","Revisão de código em dupla."],["Sexta","Entrega e demonstração."]]},
+    {t:"Planos de suporte", ofertas:[["Suporte essencial","Correções e atualizações","890","app"],["Evolução contínua","Novas funções todo mês","2.490","dev"],["Projeto sob medida","A partir de","18.000","reuniao"]]},
+    {t:"Esquenta Black Friday", itens:[["Sexta, dia 27","Diagnóstico gratuito do seu processo."],["Vagas limitadas","10 empresas nesta rodada."],["Ative o lembrete","Avisamos aqui quando abrir."]]},
+    {t:"Como funciona o diagnóstico", itens:[["Conversa de 40 minutos","On-line, com quem toca o processo."],["Mapa do processo","Onde está o gargalo."],["Proposta clara","Com prazo e custo, sem compromisso."]]},
+    {t:"Black Friday Órbita", ofertas:[["Diagnóstico","Só nesta sexta","Grátis","reuniao"],["Protótipo navegável","No fechamento do projeto","Grátis","app"],["Suporte essencial","3 primeiros meses","590","dev"]]},
+  ],
+  stories:{0:["horario","Leitura de domingo","3 sistemas que todo comércio deveria ter","Carrossel novo na terça",""],1:["dica","Dica rápida","Ctrl + Shift + V","Cola sem a formatação. De nada.",""],2:["bastidor","Bastidores","Daily do time às 9h","15 minutos, em pé, sem enrolação",""],3:["enquete","Vote aqui","Planilha ou sistema?","",""],4:["menu","O que fazemos","Serviços da Órbita","",""],5:["horario","Entrega da semana","Módulo de estoque no ar","Mais um processo fora da planilha",""],6:["bastidor","Sábado","Sem deploy no fim de semana","Regra número 1 do time",""]},
+  menu:[["Sistemas web","sob medida"],["Apps","iOS e Android"],["Integrações","ERP e WhatsApp"],["Suporte","a partir de R$ 890"]],
+  reels:[
+    {t:"Da planilha ao sistema", cenas:[["Era assim…"],["Diagnóstico"],["Protótipo"],["Ficou assim!"]]},
+    {t:"Um dia no time", cenas:[["8h, café"],["Código"],["Revisão em dupla"],["Entrega"]]},
+    {t:"Seu estoque no tablet", cenas:[["Contagem no papel?"],["Estoque no tablet"],["Relatório na hora"],["Diagnóstico grátis"]]},
+    {t:"Black Friday: diagnóstico grátis", cenas:[["Black Friday"],["Diagnóstico gratuito"],["10 vagas"],["Link na bio"]]},
+  ],
+};
+MARCAS.cosm = {
+  id:"cosm", rotulo:"Cosméticos", nome:"Raiz Bela Cosméticos", handle:"raizbela.demo",
+  resumo:"kits, lançamentos e chamadas para revendedoras", ctaTit:"Quer revender com a gente?", ctaTx:"Chame no WhatsApp do link da bio",
+  cat:"Distribuidora de cosméticos", bio:["Cosméticos para revender no ES","Kits, perfumes e skincare · pedido toda quarta","Seja revendedora 👇"], link:"wa.me/raizbela",
+  seguidores:"6.218", seguindo:"512", destaques:["Kits","Natal","Revenda","Dicas"],
+  vars:{"--a-bg":"#f8ece8","--a-tx":"#3b1630","--a-ac":"#7a2e52","--a-ac2":"#b0476f","--a-onac":"#fdf6f3","--a-fd":"'Cormorant Garamond',Georgia,serif","--a-fb":"'DM Sans',sans-serif","--a-ls":"0","--a-tt":"none","--a-rad":"5cqw","--a-blob":".14"},
+  alt:{"--a-bg":"#7a2e52","--a-tx":"#fdf6f3","--a-ac":"#f3c6d4","--a-ac2":"#f3c6d4","--a-onac":"#7a2e52"},
+  trilha:"Acústico com palmas · trilha aprovada",
+  carrosseis:[
+    {t:"Seja revendedora: 4 vantagens", itens:[["Sem taxa de adesão","Você só paga o que pedir."],["Margem de até 30%","Na revenda dos kits."],["Pedido toda quarta","Entrega na sua casa."],["Material pronto","Artes e textos para o seu WhatsApp."]]},
+    {t:"Kits do mês", ofertas:[["Kit skincare","Sérum + hidratante + tônico","89,90","kit"],["Perfume + hidratante","Linha floral","119,90","perfume"],["Kit maquiagem","Paleta + 2 batons","79,90","maquiagem"]]},
+    {t:"Seu primeiro pedido em 3 passos", itens:[["Chame no WhatsApp","Enviamos o catálogo do mês."],["Monte o pedido","Valor mínimo de R$ 250."],["Receba na quarta","Pronto para entregar às clientes."]]},
+    {t:"Skincare em 4 passos", itens:[["Limpar","Sabonete suave, manhã e noite."],["Tonificar","Equilibra o pH da pele."],["Tratar","O sérum certo para cada pele."],["Hidratar","Inclusive pele oleosa."]]},
+    {t:"Lançamentos de Natal", itens:[["Caixas de presente","Prontas, com laço."],["Perfumes novos","Floral e amadeirado."],["Kits a partir de R$ 59,90","Para todos os bolsos."]]},
+    {t:"O perfume certo para cada ocasião", itens:[["Dia a dia","Cítricos e leves."],["Trabalho","Florais suaves."],["Noite","Amadeirados e orientais."]]},
+    {t:"Venda mais pelo WhatsApp", itens:[["Status todo dia","Uma foto, um preço."],["Lista de transmissão","Separe por tipo de cliente."],["Pós-venda","Pergunte se gostou depois de 7 dias."]]},
+    {t:"Texturas que vendem sozinhas", itens:[["Mousse","Leve, para pele oleosa."],["Creme","Hidratação profunda."],["Gel","Frescor no calor."]]},
+    {t:"Kits para presentear", ofertas:[["Caixa Encanto","Perfume + body splash","99,90","natal"],["Caixa Cuidado","Skincare completo","129,90","kit"],["Mini kit","Hidratante + sabonete","59,90","creme"]]},
+    {t:"Esquenta Black Friday", itens:[["Sexta, dia 27","Kits com preço de atacado."],["Estoque limitado","Pedido abre na quarta."],["Avise suas clientes","Use as artes que mandamos."]]},
+    {t:"Como pedir na Black Friday", itens:[["Lista no WhatsApp","Enviamos às 8h de sexta."],["Reserve o kit","Até 12h."],["Pague por Pix","Retirada ou entrega no sábado."]]},
+    {t:"Black Friday Raiz Bela", ofertas:[["Kit skincare","Só hoje","69,90","kit"],["Perfume + hidratante","Só hoje","94,90","perfume"],["Caixa Encanto","Só hoje","79,90","natal"]]},
+  ],
+  stories:{0:["horario","Bom domingo","Pedido da semana fecha quarta","Já separou o seu?",""],1:["horario","Começou a semana","Catálogo novo no WhatsApp","Peça o seu pelo link da bio",""],2:["promo","Kit do dia","Sérum + hidratante","Para revender com margem","69,90"],3:["enquete","Vote aqui","Floral ou amadeirado?","",""],4:["menu","Tabela de kits","Para revendedoras","",""],5:["bastidor","Chegou estoque","Perfumes da linha nova","Garanta antes de esgotar",""],6:["bastidor","Dia de entrega","Pedidos saindo para as revendedoras","Obrigada pela confiança",""]},
+  menu:[["Kit skincare","89,90"],["Perfume + hidratante","119,90"],["Kit maquiagem","79,90"],["Caixa Encanto","99,90"]],
+  reels:[
+    {t:"Abrindo o kit de Natal", cenas:[["Chegou!"],["Caixa com laço"],["Perfume novo"],["Peça o seu"]]},
+    {t:"Um dia de revendedora", cenas:[["Catálogo no celular"],["Pedido separado"],["Entrega à cliente"],["Seja revendedora"]]},
+    {t:"Do estoque à sua cliente", cenas:[["Estoque organizado"],["Pedido da quarta"],["Embalado com carinho"],["Na casa da cliente"]]},
+    {t:"Black Friday Raiz Bela: é hoje", cenas:[["Black Friday"],["Kits com preço de atacado"],["Estoque limitado"],["Chame no WhatsApp"]]},
+  ],
+};
+
+/* ================= fotos geradas (Gemini) ================= */
+const FOTOS = {
+  burger:{ capas:["b_chapa","b_combo","b_smash","b_entrega","b_molhos","b_fries","b_pao","b_smash","b_fries","b_noite","b_entrega","b_combo"],
+    pool:["b_smash","b_bacon","b_cheddar","b_fries","b_combo","b_shake","b_pao","b_molhos","b_chapa"],
+    ofertas:{combo:"b_combo",burger:"b_smash",fries:"b_fries"},
+    reels:[["b_chapa","b_cheddar","b_smash","b_combo"],["b_bacon","b_fries","b_shake","b_combo"],["b_entrega","b_chapa","b_noite","b_smash"],["b_noite","b_combo","b_entrega","b_smash"]],
+    stories:{0:"b_combo",1:"b_noite",2:"b_smash",3:"b_bacon",4:"b_cheddar",5:"b_entrega",6:"b_chapa"}, contagem:"b_noite", avatar:"b_smash",
+    destaques:["b_cheddar","b_combo","b_entrega","b_chapa"] },
+  pet:{ capas:["p_banho","p_laco","p_tosa","p_bandana","p_taxi","p_pronto","p_filhote","p_gato","p_espuma","p_antes","p_bandana","p_laco"],
+    pool:["p_laco","p_bandana","p_espuma","p_tosa","p_secagem","p_filhote","p_pronto","p_banho","p_gato"],
+    ofertas:{dog:"p_bandana",bath:"p_banho",scissor:"p_tosa"},
+    reels:[["p_antes","p_espuma","p_tosa","p_pronto"],["p_banho","p_secagem","p_gato","p_laco"],["p_taxi","p_banho","p_pronto","p_bandana"],["p_laco","p_banho","p_tosa","p_bandana"]],
+    stories:{0:"p_filhote",1:"p_secagem",2:"p_tosa",3:"p_bandana",4:"p_pronto",5:"p_banho",6:"p_gato"}, contagem:"p_laco", avatar:"p_laco",
+    destaques:["p_pronto","p_bandana","p_taxi","p_espuma"] },
+  barba:{ capas:["f_degrade","f_cadeira","f_barba","f_cliente","f_toalha","f_produtos","f_cadeira","f_corte","f_produtos","f_noite","f_cliente","f_corte"],
+    pool:["f_corte","f_degrade","f_barba","f_navalha","f_tesoura","f_cliente","f_produtos","f_toalha","f_cafe"],
+    ofertas:{corte:"f_corte",barba:"f_barba",produtos:"f_produtos",cliente:"f_cliente"},
+    reels:[["f_cadeira","f_corte","f_navalha","f_cliente"],["f_toalha","f_navalha","f_produtos","f_cliente"],["f_noite","f_tesoura","f_cafe","f_produtos"],["f_noite","f_barba","f_corte","f_cliente"]],
+    stories:{0:"f_noite",1:"f_cadeira",2:"f_corte",3:"f_degrade",4:"f_produtos",5:"f_tesoura",6:"f_cafe"}, contagem:"f_noite", avatar:"f_cliente",
+    destaques:["f_degrade","f_cadeira","f_cliente","f_produtos"] },
+  soft:{ capas:["s_planilha","s_planilha","s_reuniao","s_tablet","s_app","s_codigo","s_dashboard","s_equipe","s_aperto","s_escritorio","s_reuniao","s_app"],
+    pool:["s_equipe","s_codigo","s_dashboard","s_dev","s_app","s_reuniao","s_cafe","s_tablet","s_aperto"],
+    ofertas:{app:"s_app",dev:"s_dev",reuniao:"s_reuniao"},
+    reels:[["s_planilha","s_reuniao","s_cafe","s_dashboard"],["s_cafe","s_codigo","s_equipe","s_aperto"],["s_planilha","s_tablet","s_dashboard","s_reuniao"],["s_escritorio","s_reuniao","s_equipe","s_aperto"]],
+    stories:{0:"s_cafe",1:"s_codigo",2:"s_equipe",3:"s_planilha",4:"s_escritorio",5:"s_tablet",6:"s_dev"}, contagem:"s_escritorio", avatar:"s_equipe",
+    destaques:["s_app","s_reuniao","s_equipe","s_dev"] },
+  cosm:{ capas:["c_revendedora","c_kit","c_whats","c_skincare","c_natal","c_perfume","c_whats","c_creme","c_natal","c_caixas","c_whats","c_kit"],
+    pool:["c_kit","c_perfume","c_skincare","c_maquiagem","c_creme","c_batom","c_revendedora","c_caixas","c_entrega"],
+    ofertas:{kit:"c_kit",perfume:"c_perfume",maquiagem:"c_maquiagem",natal:"c_natal",creme:"c_creme"},
+    reels:[["c_entrega","c_natal","c_perfume","c_kit"],["c_whats","c_caixas","c_entrega","c_revendedora"],["c_caixas","c_whats","c_natal","c_entrega"],["c_batom","c_kit","c_caixas","c_revendedora"]],
+    stories:{0:"c_creme",1:"c_whats",2:"c_kit",3:"c_perfume",4:"c_maquiagem",5:"c_caixas",6:"c_entrega"}, contagem:"c_natal", avatar:"c_revendedora",
+    destaques:["c_kit","c_natal","c_revendedora","c_skincare"] },
+};
+/* fotos ainda não geradas aparecem como ilustração provisória */
+const FOTO_OK = new Set(["b_bacon","b_chapa","b_cheddar","b_combo","b_entrega","b_fries","b_molhos","b_noite","b_pao","b_shake","b_smash","p_antes","p_bandana","p_banho","p_espuma","p_filhote","p_gato","p_laco","p_pronto","p_secagem","p_taxi","p_tosa","f_barba","f_cadeira","f_cafe","f_cliente","f_corte","f_degrade","f_navalha","f_noite","f_produtos","f_tesoura","f_toalha","c_batom","c_caixas","c_creme","c_entrega","c_kit","c_maquiagem","c_natal","c_perfume","c_revendedora","c_skincare","c_whats","s_aperto","s_app","s_cafe","s_codigo","s_dashboard","s_dev","s_equipe","s_escritorio","s_planilha","s_reuniao","s_tablet"]);
+const ILF = {f_corte:"maquina",f_degrade:"maquina",f_barba:"navalha",f_navalha:"navalha",f_cadeira:"poste",f_noite:"poste",f_produtos:"pote",f_cliente:"bigode",f_toalha:"bigode",f_tesoura:"scissor",f_cafe:"xicara"};
+const fbHTML = (k)=>`<div class="foto fb"></div>`;
+const FOTO_BASE = /sejalumen\.com\.br$/.test(location.hostname) ? "https://wmfevnhfkgrwvernyqcf.supabase.co/storage/v1/object/public/marketing/lumen/demo/jpg/" : "fotos/";
+const src = (k)=>`${FOTO_BASE}${k}.jpg`;
+const foto = (k,pos="center")=> FOTO_OK.has(k) ? `<img class="foto" src="${src(k)}" alt="" loading="lazy" style="object-position:${pos}">` : fbHTML(k);
+const imgIn = (k,cls="")=> FOTO_OK.has(k) ? `<img class="${cls}" src="${src(k)}" alt="" loading="lazy">` : fbHTML(k);
+
+/* ================= agenda do mês ================= */
+const ANO = 2026, MES = 10; // novembro
+const DIAS_CARR = [2,4,6,9,11,13,16,18,20,23,25,27], DIAS_REEL = [7,14,21,28];
+const hojeReal = new Date(), HOJE = (hojeReal.getFullYear()===ANO && hojeReal.getMonth()===MES) ? hojeReal.getDate() : (hojeReal < new Date(ANO,MES,1) ? 0 : 99);
+const SEMANA = ["dom","seg","ter","qua","qui","sex","sáb"];
+const HASH = {burger:["#hamburgueria","#smashburger","#linhares","#delivery"], pet:["#petshop","#banhoetosa","#linhares","#cachorro"], barba:["#barbearia","#barba","#degrade","#linhares"], soft:["#softwarehouse","#sistemas","#tecnologia","#espiritosanto"], cosm:["#cosmeticos","#revendedora","#skincare","#linhares"]};
+
+function montarAgenda(m){
+  const pecas = [];
+  DIAS_CARR.forEach((d,i)=>{ const c=m.carrosseis[i]; pecas.push({id:`${m.id}-c${i}`, dia:d, tipo:"carrossel", titulo:c.t, dados:c, idx:i}); });
+  DIAS_REEL.forEach((d,i)=>{ const r={...m.reels[i], fotos:FOTOS[m.id].reels[i]}; pecas.push({id:`${m.id}-r${i}`, dia:d, tipo:"reels", titulo:r.t, dados:r}); });
+  for(let d=1; d<=30; d++){
+    const wd = new Date(ANO,MES,d).getDay();
+    let s = [...m.stories[wd]]; s.foto = FOTOS[m.id].stories[wd];
+    if(d===27){ s = ["contagem","Black Friday","É hoje!","Ofertas só até meia-noite","",""]; s.foto = FOTOS[m.id].contagem; }
+    if(d===26){ s = ["contagem","Black Friday","Falta 1 dia","Amanhã tem preço especial","",""]; s.foto = FOTOS[m.id].capas[9]; }
+    pecas.push({id:`${m.id}-s${d}`, dia:d, tipo:"story", titulo:`${s[1]}: ${s[2]}`, dados:s});
+  }
+  pecas.forEach(p=>{ p.status = p.dia <= HOJE ? "pub" : "agd"; p.hora = p.tipo==="story" ? "11:30" : p.tipo==="reels" ? "19:00" : "18:30"; });
+  return pecas;
+}
+
+/* ================= renderização das artes ================= */
+const styleVars = (o)=>Object.entries(o).map(([k,v])=>`${k}:${v}`).join(";");
+function slidesDe(m,p){
+  const c=p.dados, F=FOTOS[m.id], sl=[]; let k=p.idx||0;
+  const prox = ()=>{ k++; const f=F.pool[(k*2+p.idx)%F.pool.length]; return f===F.capas[p.idx] ? F.pool[(k*2+p.idx+1)%F.pool.length] : f; };
+  sl.push({t:"capa", tit:c.t, sub: c.ofertas ? "Arraste para ver os preços →" : "Arraste para o lado →", f:F.capas[p.idx]});
+  (c.ofertas||[]).forEach(o=>sl.push({t:"oferta", tit:o[0], desc:o[1], preco:o[2], f:F.ofertas[o[3]]||prox()}));
+  (c.itens||[]).forEach((it,i)=>sl.push({t:"item", n:String(i+1).padStart(2,"0"), tit:it[0], tx:it[1], f:prox()}));
+  sl.push({t:"cta", tit: c.fim ? c.fim : m.ctaTit, tx: m.ctaTx, f:F.capas[p.idx]});
+  return sl;
+}
+function marcaHTML(m){ return `<div class="marca"><i></i>${m.nome}</div>`; }
+function arteSlide(m,s,i,n){
+  const v = styleVars(m.vars);
+  const pag = n>1 ? `<div class="pag">${i+1}/${n}</div>` : "";
+  if(s.t==="capa"){ const longo = s.tit.length>22; return `<div class="arte feed t-capa" style="${v}">${foto(s.f,"center 70%")}<div class="veu-top" style="--solid:${longo?40:30}%;--fade:${longo?66:58}%"></div><div class="faixa">${m.cat}</div><div class="tit">${s.tit}</div><div class="sub" style="--subtop:${longo?60:46}cqw">${s.sub}</div><div class="marca" style="color:#fff;text-shadow:0 .4cqw 2cqw rgba(0,0,0,.6)"><i></i>${m.nome}</div>${pag?pag.replace('class="pag"','class="pag" style="color:#fff;opacity:1;text-shadow:0 .4cqw 2cqw rgba(0,0,0,.6)"'):""}</div>`; }
+  if(s.t==="item") return `<div class="arte feed t-item" style="${v}"><div class="n">${s.n}</div><div class="tit">${s.tit}</div>${s.tx?`<div class="tx" style="--txtop:${s.tit.length>16?72:62}cqw;right:58cqw">${s.tx}</div>`:""}<div class="moldura">${imgIn(s.f)}</div>${marcaHTML(m)}${pag}</div>`;
+  if(s.t==="oferta") return `<div class="arte feed t-oferta" style="${v}">${foto(s.f,"center 65%")}<div class="veu-top" style="--solid:22%;--fade:50%"></div><div class="tit">${s.tit}</div><div class="desc" style="right:6cqw">${s.desc}</div><div class="preco" style="top:auto;bottom:16cqw"><small>por</small><b>${/^\d/.test(s.preco)?"R$ "+s.preco:s.preco}</b></div><div class="marca" style="color:#fff;text-shadow:0 .4cqw 2cqw rgba(0,0,0,.6)"><i></i>${m.nome}</div>${pag?pag.replace('class="pag"','class="pag" style="color:#fff;opacity:1;text-shadow:0 .4cqw 2cqw rgba(0,0,0,.6)"'):""}</div>`;
+  return `<div class="arte feed t-cta" style="${v}"><div class="moldura" style="left:6cqw;right:auto;top:6cqw;bottom:auto;width:30cqw;height:30cqw;border-radius:50%">${imgIn(s.f)}</div><div class="tit" style="top:44cqw">${s.tit}</div><div class="tx" style="top:82cqw">${s.tx}</div><div class="bt" style="top:96cqw">@${m.handle}</div>${marcaHTML(m)}${pag}</div>`;
+}
+function arteStory(m,s){
+  const [tpl,eye,big,p,preco] = s;
+  const v = styleVars(m.vars);
+  let corpo = "";
+  if(tpl==="enquete") corpo = `<div class="s-txt" style="top:18cqw"><div class="s-eye">${eye}</div><div class="s-big">${big}</div></div><div class="poll" style="top:auto;bottom:34cqw"><b>${big}</b><div>${big.replace("?","").split(" ou ").map(x=>`<span>${x}</span>`).join("")}</div></div>`;
+  else if(tpl==="menu") corpo = `<div class="s-txt" style="top:18cqw"><div class="s-eye">${eye}</div><div class="s-big" style="font-size:12cqw">${big}</div><div class="menu-card"><ul class="menu" style="margin-top:0">${m.menu.map(([a,b])=>`<li><span>${a}</span><b>${/^\d/.test(b)?"R$ "+b:b}</b></li>`).join("")}</ul></div></div>`;
+  else corpo = `<div class="s-txt" style="top:18cqw"><div class="s-eye">${eye}</div><div class="s-big">${big}</div>${p?`<div class="s-p">${p}</div>`:""}${preco?`<div class="s-chip">R$ ${preco}</div>`:""}</div>`;
+  return `<div class="arte vert foto-txt" style="${v}">${foto(s.foto)}<div class="veu-esc"></div>${corpo}<div class="marca" style="bottom:7cqw">@${m.handle}</div></div>`;
+}
+function arteReel(m,r,parado){
+  const n=r.cenas.length, dur=n*2.2;
+  const v = styleVars(m.vars);
+  const cenas = r.cenas.map(([txt],i)=>`<div class="cena" style="--dur:${dur}s;--del:${i*2.2}s">${foto(r.fotos[i])}<div class="veu-esc"></div><div class="s-txt" style="top:20cqw"><div class="s-eye">${m.nome}</div><div class="s-big">${txt}</div></div></div>`).join("");
+  return `<div class="arte vert foto-txt ${parado?"parado":""}" style="${v}">${cenas}${parado?`<div class="play"><i>▶</i></div>`:""}</div>`;
+}
+function capaDe(m,p){
+  if(p.tipo==="carrossel") return arteSlide(m, slidesDe(m,p)[0], 0, 1);
+  if(p.tipo==="reels") return arteReel(m, p.dados, true);
+  return arteStory(m, p.dados);
+}
+function legendaDe(m,p){
+  const cta = m.ctaTx + ".";
+  const intro = {carrossel:"Arrasta pro lado e confere.", reels:"Assiste até o fim.", story:""}[p.tipo];
+  return `${p.titulo}\n\n${intro} ${cta}\n\n<span class="h">${HASH[m.id].join(" ")}</span>`;
+}
+
+/* ================= telas ================= */
+const $ = (s,r=document)=>r.querySelector(s);
+let marca = "burger", vista = "cal", agenda = {};
+Object.values(MARCAS).forEach(m=>agenda[m.id]=montarAgenda(m));
+const NOME_TIPO = {carrossel:"Carrossel", reels:"Reels", story:"Story"};
+const dataBR = (d)=> new Date(ANO,MES,d).toLocaleDateString("pt-BR",{weekday:"long",day:"2-digit",month:"long"});
+
+function render(){
+  const m = MARCAS[marca], ps = agenda[marca];
+  $("#negocios").innerHTML = Object.values(MARCAS).map(x=>`<button class="chip ${x.id===marca?"on":""}" data-m="${x.id}">${x.rotulo}: ${x.nome}</button>`).join("");
+  $("#titulo").textContent = `${m.nome} · plano do mês`;
+  $("#subtit").textContent = `Stories todo dia com ${m.resumo}; carrosséis 3 vezes por semana e um Reels por sábado. Toque em qualquer arte para ver em tamanho real.`;
+  const cont = (t)=>ps.filter(p=>p.tipo===t).length;
+  $("#kpis").innerHTML = `<div class="kpi"><b>${cont("story")}</b><span>stories</span></div><div class="kpi"><b>${cont("carrossel")}</b><span>carrosséis</span></div><div class="kpi"><b>${cont("reels")}</b><span>Reels</span></div><div class="kpi"><b>${ps.filter(p=>p.status==="pub").length}</b><span>já publicados</span></div>`;
+  $("#negocios").querySelectorAll("[data-m]").forEach(b=>b.onclick=()=>{marca=b.dataset.m; render();});
+  $("#vCal").classList.toggle("on",vista==="cal"); $("#vIg").classList.toggle("on",vista==="ig");
+  $("#telaCal").hidden = vista!=="cal"; $("#telaIg").hidden = vista!=="ig";
+  vista==="cal" ? renderCal(m,ps) : renderIg(m,ps);
+}
+function renderCal(m,ps){
+  const ini = new Date(ANO,MES,1).getDay();
+  let h = SEMANA.map(s=>`<div class="sem">${s}</div>`).join("");
+  for(let i=0;i<ini;i++) h += `<div class="dia vazio"></div>`;
+  for(let d=1; d<=30; d++){
+    const doDia = ps.filter(p=>p.dia===d), feed = doDia.filter(p=>p.tipo!=="story"), st = doDia.find(p=>p.tipo==="story");
+    const status = doDia[0]?.status;
+    h += `<div class="dia ${d===HOJE?"hoje":""}" role="button" tabindex="0" data-dia="${d}" aria-label="${dataBR(d)}: ${doDia.length} peças">
+      <div class="num"><span>${d}${d===HOJE?" · hoje":""}</span><span class="st" style="background:${status==="pub"?"var(--pub)":"var(--agd)"}"></span></div>
+      <div class="miniaturas">${feed.map(p=>`<button class="mini ${p.tipo==="reels"?"vert":"feed"}" data-p="${p.id}" aria-label="${NOME_TIPO[p.tipo]}: ${p.titulo}"><span class="ico">${p.tipo==="reels"?"REELS":"CARR."}</span>${capaDe(m,p)}</button>`).join("")}</div>
+      ${st?`<button class="storyb" data-p="${st.id}" aria-label="Story: ${st.titulo}"><span class="r"><i></i></span>story</button>`:""}
+    </div>`;
+  }
+  $("#telaCal").innerHTML = `<div class="cal">${h}</div>`;
+  $("#telaCal").querySelectorAll("[data-p]").forEach(b=>b.onclick=(e)=>{e.stopPropagation(); abrirPeca(b.dataset.p);});
+  $("#telaCal").querySelectorAll("[data-dia]").forEach(c=>{ const f=()=>abrirDia(+c.dataset.dia); c.onclick=f; c.onkeydown=(e)=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();f();}}; });
+}
+function renderIg(m,ps){
+  const feed = ps.filter(p=>p.tipo!=="story").sort((a,b)=>b.dia-a.dia);
+  const pubs = feed.filter(p=>p.status==="pub").length;
+  $("#telaIg").innerHTML = `<div class="perfilwrap">
+    <div class="fone"><div class="ig">
+      <div class="hdr"><b>${m.handle}</b><span>＋ ☰</span></div>
+      <div class="top"><button class="av" id="avatar" aria-label="Ver stories"><div style="position:relative">${imgIn(FOTOS[m.id].avatar,"fotoav")}</div></button>
+        <div class="stats"><div><b>${pubs + 87}</b>posts</div><div><b>${m.seguidores}</b>seguidores</div><div><b>${m.seguindo}</b>seguindo</div></div></div>
+      <div class="bio"><b>${m.nome}</b><span class="cat">${m.cat}</span><br>${m.bio.join("<br>")}<br><a href="#" onclick="return false">${m.link}</a></div>
+      <div class="btns"><div class="seg">Seguir</div><div>Mensagem</div><div>Contato</div></div>
+      <div class="dest">${m.destaques.map((d,i)=>`<div><i><span style="position:relative;display:block">${imgIn(FOTOS[m.id].destaques[i],"fotoav")}</span></i>${d}</div>`).join("")}</div>
+      <div class="tabs"><div class="on">▦ Posts</div><div>▶ Reels</div><div>☺ Marcados</div></div>
+      <div class="grid">${feed.map(p=>`<button data-p="${p.id}" aria-label="${p.titulo}">${capaDe(m,p)}<span class="tp">${p.tipo==="reels"?"▶":"❐"}</span>${p.status==="agd"?`<span class="ag">${p.dia}/11</span>`:""}</button>`).join("")}</div>
+    </div></div>
+    <div class="lado">
+      <h2>Assim o perfil fica no fim do mês</h2>
+      <p>O grid mostra os carrosséis e Reels do plano, do mais novo para o mais antigo. Os marcados em azul ainda estão agendados. Toque na foto do perfil para ver os stories dos últimos dias.</p>
+      <ul>
+        <li><b>Identidade constante:</b> as mesmas cores, fontes e tom em todas as peças.</li>
+        <li><b>Grid variado:</b> capas de carrossel intercaladas com Reels.</li>
+        <li><b>Stories diários:</b> mantêm o perfil vivo entre um post e outro.</li>
+        <li><b>Aprovação semanal:</b> o cliente aprova a semana inteira pelo celular, de uma vez.</li>
+      </ul>
+    </div></div>`;
+  $("#telaIg").querySelectorAll("[data-p]").forEach(b=>b.onclick=()=>abrirPeca(b.dataset.p));
+  $("#avatar").onclick = ()=>{ const d=Math.min(Math.max(HOJE,5),30); const lista = agenda[marca].filter(p=>p.tipo==="story" && p.dia<=d && p.dia>d-5).sort((a,b)=>a.dia-b.dia); abrirStories(lista,0); };
+}
+
+/* ================= modais ================= */
+let timer = null;
+function fecharModal(){ clearInterval(timer); timer=null; $("#modal").hidden = true; $("#caixa").innerHTML=""; }
+$("#modal").onclick = (e)=>{ if(e.target.id==="modal") fecharModal(); };
+document.addEventListener("keydown",(e)=>{ if(e.key==="Escape" && !$("#modal").hidden) fecharModal(); });
+function abrir(html){ clearInterval(timer); $("#caixa").innerHTML = `<button class="fechar" id="fechar" aria-label="Fechar">×</button>${html}`; $("#modal").hidden=false; $("#fechar").onclick=fecharModal; }
+function acharPeca(id){ return agenda[marca].find(p=>p.id===id); }
+function infoHTML(m,p){
+  return `<div class="info"><div class="tags"><span class="tag">${NOME_TIPO[p.tipo]}</span><span class="tag ${p.status}">${p.status==="pub"?"Publicado":"Agendado"}</span></div>
+    <h3>${p.titulo}</h3><div style="color:var(--tx2);font-size:13px">${dataBR(p.dia)} · ${p.hora}</div>
+    ${p.tipo!=="story"?`<div class="legenda">${legendaDe(m,p)}</div>`:`<div class="legenda">Story de 24 horas. Os de cardápio e promoção vão para o destaque.</div>`}
+    <div class="dica">${p.tipo==="reels"?`Vídeo vertical de ${p.dados.cenas.length*2.2|0} segundos, com ${m.trilha.toLowerCase()}.`:p.tipo==="carrossel"?"Arraste ou use as setas para ver todos os slides.":"No Instagram, enquetes e links são adicionados na hora de postar."}</div></div>`;
+}
+function abrirPeca(id){
+  const p = acharPeca(id), m = MARCAS[marca]; if(!p) return;
+  if(p.tipo==="story"){ const lista=agenda[marca].filter(x=>x.tipo==="story"); return abrirStories(lista, lista.indexOf(p), true); }
+  if(p.tipo==="reels"){
+    abrir(`<div class="visor"><div class="palco"><div class="quadro vert">${arteReel(m,p.dados,false)}<div class="barras"><i><b id="rb"></b></i></div><div class="som"><span class="eq"><i></i><i></i><i></i></span>${m.trilha}</div></div></div>${infoHTML(m,p)}</div>`);
+    const total = p.dados.cenas.length*2200, t0 = performance.now();
+    timer = setInterval(()=>{ const b=$("#rb"); if(b) b.style.width = (((performance.now()-t0)%total)/total*100)+"%"; },100);
+    return;
+  }
+  const sl = slidesDe(m,p); let i = 0;
+  abrir(`<div class="visor"><div class="palco"><div style="width:min(100%,460px)"><div class="quadro" style="width:100%"><div class="trilho" id="tr">${sl.map((s,k)=>arteSlide(m,s,k,sl.length)).join("")}</div>
+    <button class="nav e" id="ant" aria-label="Slide anterior">‹</button><button class="nav d" id="prx" aria-label="Próximo slide">›</button></div>
+    <div class="pontos" id="pts">${sl.map(()=>"<i></i>").join("")}</div></div></div>${infoHTML(m,p)}</div>`);
+  const ir = (k)=>{ i=Math.max(0,Math.min(sl.length-1,k)); $("#tr").style.transform=`translateX(-${i*100}%)`; $("#ant").disabled=i===0; $("#prx").disabled=i===sl.length-1; $("#pts").querySelectorAll("i").forEach((d,j)=>d.classList.toggle("on",j===i)); };
+  $("#ant").onclick=()=>ir(i-1); $("#prx").onclick=()=>ir(i+1); ir(0);
+  let x0=null; const q=$("#tr"); q.addEventListener("pointerdown",e=>x0=e.clientX); q.addEventListener("pointerup",e=>{ if(x0!==null && Math.abs(e.clientX-x0)>30) ir(i+(e.clientX<x0?1:-1)); x0=null; });
+  $("#caixa").onkeydown=(e)=>{ if(e.key==="ArrowRight") ir(i+1); if(e.key==="ArrowLeft") ir(i-1); };
+}
+function abrirStories(lista, i, umSo){
+  const m = MARCAS[marca];
+  const vistos = umSo ? [lista[i]] : lista; let k = umSo ? 0 : i;
+  const mostrar = ()=>{
+    clearInterval(timer);
+    const p = vistos[k];
+    abrir(`<div class="visor"><div class="palco"><div class="quadro vert">${arteStory(m,p.dados)}
+      <div class="barras">${vistos.map((_,j)=>`<i><b style="width:${j<k?100:0}%"></b></i>`).join("")}</div>
+      <div class="tapz"><button aria-label="Anterior" id="sa"></button><button aria-label="Próximo" id="sp"></button></div></div></div>${infoHTML(m,p)}</div>`);
+    const barra = $(".barras").children[k].firstElementChild, t0=performance.now();
+    timer = setInterval(()=>{ const f=(performance.now()-t0)/5000; barra.style.width=Math.min(100,f*100)+"%"; if(f>=1){ if(k<vistos.length-1){k++;mostrar();} else clearInterval(timer);} },60);
+    $("#sa").onclick=()=>{ if(k>0){k--;mostrar();} }; $("#sp").onclick=()=>{ if(k<vistos.length-1){k++;mostrar();} else fecharModal(); };
+  };
+  mostrar();
+}
+function abrirDia(d){
+  const m = MARCAS[marca], ps = agenda[marca].filter(p=>p.dia===d);
+  abrir(`<div class="lista"><h3>${dataBR(d)}</h3><p style="color:var(--tx2);font-size:13px">${ps.length} peça(s) · ${ps[0].status==="pub"?"publicadas":"agendadas"}</p>
+    <div class="itens">${ps.map(p=>`<button class="item" data-p="${p.id}"><div class="th">${capaDe(m,p)}</div><b>${p.titulo}</b><span>${NOME_TIPO[p.tipo]} · ${p.hora}</span></button>`).join("")}</div></div>`);
+  $("#caixa").querySelectorAll("[data-p]").forEach(b=>b.onclick=()=>abrirPeca(b.dataset.p));
+}
+
+$("#vCal").onclick=()=>{vista="cal";render();}; $("#vIg").onclick=()=>{vista="ig";render();};
+render();
+</script>
+</body>
+</html>
