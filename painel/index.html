@@ -411,7 +411,8 @@ function kPend() { const out = []; KSTEPS.forEach((s, i) => (s.fields || []).for
 
 function kCampo(f) {
   const v = kit[f.k], st = 'style="width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;outline:none"';
-  const lab = `<span>${esc(f.l)}${kReq(f) ? ' <b style="color:var(--ac)">*</b>' : ""}${f.who ? ` <em class="mono" style="font-style:normal;font-size:10.5px;color:var(--tx2)">· ${f.who}</em>` : ""}</span>`;
+  const conf = kit._auto && kit._auto[f.k] ? ' <em class="mono" style="font-style:normal;font-size:10px;color:#fde047;border:1px solid rgba(234,179,8,.5);border-radius:99px;padding:0 6px">conferir</em>' : "";
+  const lab = `<span>${esc(f.l)}${conf}${kReq(f) ? ' <b style="color:var(--ac)">*</b>' : ""}${f.who ? ` <em class="mono" style="font-style:normal;font-size:10.5px;color:var(--tx2)">· ${f.who}</em>` : ""}</span>`;
   const hint = f.hint ? `<small style="display:block;color:var(--tx2);font-size:11.5px;margin-top:4px">${esc(f.hint)}</small>` : "";
   const full = f.full ? "grid-column:1/-1;" : "";
   if (f.t === "title") return `<h3 style="grid-column:1/-1;margin-top:8px;font-size:14px">${esc(f.l)}</h3>`;
@@ -444,6 +445,7 @@ function renderNovo() {
       <div style="display:flex;gap:8px"><button class="btn" id="kLimpar">Começar do zero</button></div></div>
     <div style="display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:16px;align-items:start" id="kGrid">
       <div>
+        ${atalhosHTML()}
         <nav class="abas">${KSTEPS.map((x, i) => { const p = pend.filter((q) => q.i === i).length; return `<button class="aba ${i === kstep ? "on" : ""}" data-kstep="${i}">${i + 1}. ${x.nome}${p ? `<em>${p}</em>` : x.fields ? " ✓" : ""}</button>`; }).join("")}</nav>
         <div class="post"><div class="corpo">
           <h3>${kstep + 1}. ${esc(s.nome)}</h3><p style="color:var(--tx2);font-size:13px">${esc(s.lead)}</p>
@@ -468,18 +470,81 @@ function renderNovo() {
   box.querySelectorAll("[data-kstep]").forEach((b) => (b.onclick = () => { kstep = Number(b.dataset.kstep); renderNovo(); scrollTo(0, 0); }));
   box.querySelectorAll("[data-k]").forEach((e) => {
     const ev = e.type === "checkbox" || e.tagName === "SELECT" ? "onchange" : "oninput";
-    e[ev] = () => { kit[e.dataset.k] = e.type === "checkbox" ? e.checked : e.value; kitSalvar(); if (ev === "onchange") renderNovo(); };
+    e[ev] = () => { kit[e.dataset.k] = e.type === "checkbox" ? e.checked : e.value; if (kit._auto) delete kit._auto[e.dataset.k]; kitSalvar(); if (ev === "onchange") renderNovo(); };
   });
-  box.querySelectorAll("[data-cor]").forEach((e) => (e.oninput = () => { kit.cores[Number(e.dataset.cor)] = e.value; e.nextElementSibling.textContent = e.value; kitSalvar(); }));
+  box.querySelectorAll("[data-cor]").forEach((e) => (e.oninput = () => { kit.cores[Number(e.dataset.cor)] = e.value; kit._coresDefinidas = true; if (kit._auto) delete kit._auto.cores; e.nextElementSibling.textContent = e.value; kitSalvar(); }));
   box.querySelectorAll("[data-pilar]").forEach((b) => (b.onclick = () => { const p = b.dataset.pilar, l = kit.pilares || (kit.pilares = []); l.includes(p) ? l.splice(l.indexOf(p), 1) : l.push(p); kitSalvar(); renderNovo(); }));
   if ($("#kPilarAdd")) $("#kPilarAdd").onclick = () => { const t = $("#kPilarNovo").value.trim(); if (!t) return; (kit.pilares = kit.pilares || []).push(t); kitSalvar(); renderNovo(); };
   box.querySelectorAll("[data-data]").forEach((e) => (e.onchange = () => { (kit.datasSetor = kit.datasSetor || {})[e.dataset.data] = e.checked; kitSalvar(); }));
   if ($("#kAnt")) $("#kAnt").onclick = () => { kstep--; renderNovo(); scrollTo(0, 0); };
   if ($("#kProx")) $("#kProx").onclick = () => { kstep++; renderNovo(); scrollTo(0, 0); };
   $("#voltarN").onclick = () => { modo = "equipe"; render(); };
-  $("#kLimpar").onclick = () => { if (!confirm("Apagar o rascunho e começar um cadastro novo?")) return; kit = kitNovo(); kstep = 0; rascunho = null; kitSalvar(); renderNovo(); };
+  $("#kLimpar").onclick = () => { if (!confirm("Apagar o rascunho e começar um cadastro novo?")) return; kit = kitNovo(); kstep = 0; rascunho = null; kitImgs = []; kitSalvar(); renderNovo(); };
   if ($("#nGerar")) $("#nGerar").onclick = gerarDoKit;
+  ligarAtalhos();
   if (rascunho?.marca && kstep === KSTEPS.length - 1) mostrarRevisao();
+}
+let kitImgs = [];
+function atalhosHTML() {
+  const st = 'style="width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;outline:none"';
+  return `<details class="post" id="kAtalhos" style="margin-bottom:14px" ${kit._atalhoFechado ? "" : "open"}><summary style="cursor:pointer;padding:14px 15px;font-weight:700">⚡ Atalhos de preenchimento <span style="font-weight:500;color:var(--tx2);font-size:12.5px">· preenche a maior parte em 1 minuto</span></summary>
+    <div class="corpo" style="padding-top:0">
+      <p style="color:var(--tx2);font-size:12.5px">Consulta o CNPJ na Receita, lê o site, a logo (vira as cores) e prints do Instagram ou do cartão CNPJ. A IA escreve o que faltar. <b>Só preenche campos vazios</b> e marca como <em class="mono" style="font-style:normal;font-size:10px;color:#fde047">conferir</em>.</p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px">
+        <input id="aCnpj" placeholder="CNPJ" value="${esc(kit._cnpj || "")}" ${st}>
+        <input id="aIg" placeholder="@instagram" value="${esc(kit.instagram || "")}" ${st}>
+        <input id="aSite" placeholder="Site (opcional)" value="${esc(kit.site || "")}" ${st}>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <label class="btn" style="cursor:pointer">🎨 Logo<input type="file" id="aLogo" accept="image/*" hidden></label>
+        <label class="btn" style="cursor:pointer">🖼 Prints (até 4)<input type="file" id="aPrints" accept="image/png,image/jpeg,image/webp" multiple hidden></label>
+        <div id="aThumbs" style="display:flex;gap:6px;flex-wrap:wrap">${kitImgs.map((i, n) => `<span style="position:relative"><img src="${i.url}" style="width:44px;height:44px;object-fit:cover;border-radius:8px;border:1px solid ${i.tipo === "logo" ? "var(--ac)" : "var(--line)"}"><button data-rimg="${n}" style="position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;border:none;background:#ef4444;color:#fff;font-size:11px;line-height:1">×</button></span>`).join("")}</div>
+      </div>
+      <div class="acoes"><button class="btn pri" id="aIr">✨ Preencher automaticamente</button></div>
+      <div id="aMsg" style="font-size:12.5px;color:var(--tx2)"></div>
+    </div></details>`;
+}
+function lerImagem(file, max = 1100) {
+  return new Promise((ok, erro) => {
+    const r = new FileReader();
+    r.onload = () => { const im = new Image(); im.onload = () => {
+      const k = Math.min(1, max / Math.max(im.width, im.height)), c = document.createElement("canvas");
+      c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
+      const g = c.getContext("2d"); g.fillStyle = "#ffffff"; g.fillRect(0, 0, c.width, c.height); g.drawImage(im, 0, 0, c.width, c.height);
+      const url = c.toDataURL("image/jpeg", 0.85); ok({ url, mime: "image/jpeg", data: url.split(",")[1] });
+    }; im.onerror = erro; im.src = r.result; };
+    r.onerror = erro; r.readAsDataURL(file);
+  });
+}
+function ligarAtalhos() {
+  const d = $("#kAtalhos"); if (!d) return;
+  d.ontoggle = () => { kit._atalhoFechado = !d.open; kitSalvar(); };
+  $("#aCnpj").oninput = (e) => { kit._cnpj = e.target.value; kitSalvar(); };
+  $("#aIg").oninput = (e) => { kit.instagram = e.target.value; kitSalvar(); };
+  $("#aSite").oninput = (e) => { kit.site = e.target.value; kitSalvar(); };
+  $("#aLogo").onchange = async (e) => { const f = e.target.files[0]; if (!f) return; kitImgs = kitImgs.filter((i) => i.tipo !== "logo"); kitImgs.unshift({ tipo: "logo", ...(await lerImagem(f, 700)) }); renderNovo(); };
+  $("#aPrints").onchange = async (e) => { for (const f of [...e.target.files].slice(0, 4)) { if (kitImgs.filter((i) => i.tipo === "print").length >= 4) break; kitImgs.push({ tipo: "print", ...(await lerImagem(f)) }); } renderNovo(); };
+  document.querySelectorAll("[data-rimg]").forEach((b) => (b.onclick = (e) => { e.preventDefault(); kitImgs.splice(Number(b.dataset.rimg), 1); renderNovo(); }));
+  $("#aIr").onclick = preencherAuto;
+}
+async function preencherAuto(e) {
+  const cnpj = (kit._cnpj || "").trim(), site = (kit.site || "").trim();
+  if (!cnpj && !site && !kitImgs.length && !String(kit.fantasia || kit.descricao || "").trim()) return toast("Informe CNPJ, site, logo/prints ou o nome e a descrição da empresa", true);
+  e.target.disabled = true; e.target.textContent = "Consultando… (até 1 min)"; $("#aMsg").textContent = "Lendo CNPJ, site e imagens…";
+  const r = await chamarFn("lumen-preencher", { cnpj, site, instagram: kit.instagram, imagens: kitImgs.map(({ tipo, mime, data }) => ({ tipo, mime, data })), kit });
+  e.target.disabled = false; e.target.textContent = "✨ Preencher automaticamente";
+  if (!r) { $("#aMsg").textContent = ""; return; }
+  const nomes = []; kit._auto = kit._auto || {};
+  for (const [k, v] of Object.entries(r.campos || {})) {
+    const atual = kit[k];
+    if (k === "cores") { if (kit._coresDefinidas) continue; kit.cores = v; kit._coresDefinidas = true; }
+    else if (k === "pilares") { if ((atual || []).length) continue; kit.pilares = v; }
+    else if (String(atual ?? "").trim()) continue;
+    else kit[k] = v;
+    kit._auto[k] = true; nomes.push(k);
+  }
+  kitSalvar(); renderNovo();
+  $("#aMsg").innerHTML = (nomes.length ? `✓ Preenchidos ${nomes.length} campos (fontes: ${esc((r.fontes || []).join(", ") || "IA")}). Revise os marcados como <b style="color:#fde047">conferir</b>.` : "Nenhum campo vazio para preencher.") + ((r.avisos || []).length ? `<br>⚠ ${esc(r.avisos.join(" "))}` : "");
 }
 function kitBriefing() {
   const k = kit, L = (t, v) => (String(v ?? "").trim() ? `${t}: ${String(v).trim()}\n` : "");
