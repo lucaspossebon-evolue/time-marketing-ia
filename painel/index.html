@@ -608,7 +608,7 @@ function renderCriado(s) {
       <div class="cli" style="cursor:default"><div><div class="n">1. Telegram de aprovação</div><p style="color:var(--tx2);font-size:13px;margin-top:4px">Envie ao cliente. Quando ele vincular, o robô começa a mandar as prévias.</p><pre class="obs" style="white-space:pre-wrap;margin-top:8px">${esc(msgTg)}</pre></div><div class="lado"><button class="btn pri" data-copiar="tg">Copiar</button></div></div>
       ${msgAc ? `<div class="cli" style="cursor:default"><div><div class="n">2. Acesso ao painel</div><p style="color:var(--tx2);font-size:13px;margin-top:4px">A senha não aparece de novo.</p><pre class="obs" style="white-space:pre-wrap;margin-top:8px">${esc(msgAc)}</pre></div><div class="lado"><button class="btn pri" data-copiar="ac">Copiar</button></div></div>` : `<div class="cli" style="cursor:default"><div><div class="n">2. Acesso ao painel</div><p style="color:var(--tx2);font-size:13px;margin-top:4px">${s.acesso ? "O e-mail já tinha login; ele entra com a senha que já usa." : "Nenhum e-mail informado. Crie depois em Acessos."}</p></div></div>`}
       <div class="cli" style="cursor:default"><div><div class="n">3. Instagram (publicação automática)</div><p style="color:var(--tx2);font-size:13px;margin-top:4px">No app <b>Lúmen Publicador</b> (developers.facebook.com): Funções do app › adicionar <b>${esc(c.instagram || "o perfil")}</b> como <b>Testador do Instagram</b>. O cliente aceita o convite no Instagram (Configurações › Apps e sites). Depois a equipe gera o token e cadastra no servidor.</p></div></div>
-      <div class="cli" style="cursor:default"><div><div class="n">4. Revisar e ativar</div><p style="color:var(--tx2);font-size:13px;margin-top:4px">Na aba <b>Implantação</b> do cliente você edita o guia, as datas e muda o status para <b>ativo</b>.</p></div><div class="lado"><button class="btn pri" id="abrirCli">Abrir cliente</button></div></div>
+      <div class="cli" style="cursor:default"><div><div class="n">4. Revisar e ativar</div><p style="color:var(--tx2);font-size:13px;margin-top:4px">Na aba <b>Gestão</b> do cliente você edita o guia, as datas e muda o status para <b>ativo</b>.</p></div><div class="lado"><button class="btn pri" id="abrirCli">Abrir cliente</button></div></div>
     </div>`;
   $("#conteudo").querySelectorAll("[data-copiar]").forEach((b) => (b.onclick = async () => { try { await navigator.clipboard.writeText(b.dataset.copiar === "tg" ? msgTg : msgAc); toast("Copiado!"); } catch (e) { toast("Selecione e copie manualmente", true); } }));
   $("#abrirCli").onclick = () => { atual = clientes.find((x) => x.id === s.id); if (!atual) return; modo = "cliente"; aba = "implantacao"; montarSeletor(); $("#selCliente").value = String(atual.id); history.replaceState(null, "", "?cliente=" + atual.slug); render(); };
@@ -637,21 +637,42 @@ async function renderImplantacao() {
       <div class="grade" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px">
         <label class="campo"><span>Status</span><select id="iSt">${["implantacao", "ativo", "pausado", "cancelado"].map((s) => `<option ${c.status === s ? "selected" : ""}>${s}</option>`).join("")}</select></label>
         <label class="campo"><span>Horário das publicações</span><input id="iHora" value="${esc(c.horario_publicacao || "18:30")}"></label>
+        <label class="campo"><span>Nome</span><input id="iNome" value="${esc(c.nome)}"></label>
+        <label class="campo"><span>Instagram</span><input id="iIg" value="${esc(c.instagram || "")}"></label>
+        <label class="campo"><span>Pacote</span><select id="iPac">${Object.entries(PACOTES).map(([k, t]) => `<option value="${k}" ${c.pacote === k ? "selected" : ""}>${t}</option>`).join("")}</select></label>
+        <label class="campo"><span>Site</span><input id="iSite" value="${esc(c.config?.site || "")}"></label>
+        <label class="campo"><span>Chamada padrão (fim das legendas)</span><input id="iCta" value="${esc(c.config?.cta || "")}"></label>
+        <label class="campo"><span>Botão das artes</span><input id="iBot" value="${esc(c.config?.botao || "")}"></label>
       </div>
       <h3>Guia de marca (o robô lê antes de cada post)</h3>
       <textarea id="iMarca" style="min-height:460px;width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:12px;font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:1.5;resize:vertical;outline:none">${esc(c.marca || "")}</textarea>
       <h3>Datas comemorativas</h3><div id="dtWrap">${datasHTML(lista)}</div>
       ${c.briefing ? `<details><summary style="cursor:pointer;color:var(--tx2);font-size:13px">Briefing original</summary><pre class="obs" style="white-space:pre-wrap;margin-top:8px;max-height:300px;overflow:auto">${esc(c.briefing)}</pre></details>` : ""}
       <div class="acoes"><button class="btn pri" id="iSalvar">Salvar alterações</button></div>
-    </div></div>`;
+    </div></div>
+    <div class="post" style="margin-top:14px"><div class="corpo">
+      <h3>Telegram de aprovação</h3>
+      <p style="color:var(--tx2);font-size:13px">${c.telegram_chat_id ? "Vinculado ✓ — o cliente recebe as prévias no @lumen_aprovacao_bot." : `Não vinculado. O cliente envia <b class="mono">/vincular ${esc(cod || "—")}</b> ao @lumen_aprovacao_bot.`}</p>
+      <div class="acoes"><button class="btn" id="iNovoCod">Gerar novo código</button>${c.telegram_chat_id ? '<button class="btn er" id="iDesv">Desvincular Telegram</button>' : ""}</div>
+    </div></div>
+    ${c.slug !== "lumen" ? `<div class="post" style="margin-top:14px;border-color:rgba(239,68,68,.5)"><div class="corpo"><h3 style="color:#fca5a5">Excluir cliente</h3><p style="color:var(--tx2);font-size:13px">Apaga o cliente com as pautas, os posts e os acessos ao painel. Não dá para desfazer. O que já foi publicado no Instagram continua lá. Para só parar a produção, mude o status para <b>pausado</b>.</p><div class="acoes"><button class="btn er" id="iExcluir">Excluir ${esc(c.nome)}</button></div></div></div>` : ""}`;
   box.querySelectorAll(".campo input,.campo select").forEach((e) => (e.style.cssText += ";width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:10px 12px"));
   ligarDatas(box);
   $("#iSalvar").onclick = async (e) => {
     e.target.disabled = true;
+    const { error: e0 } = await sb.rpc("lumen_atualizar_cliente", { p_cliente: atual.id, p_dados: { nome: $("#iNome").value, instagram: $("#iIg").value, pacote: $("#iPac").value, site: $("#iSite").value, cta: $("#iCta").value, botao: $("#iBot").value } });
+    if (e0) { e.target.disabled = false; return toast(e0.message, true); }
     const { error: er } = await sb.rpc("lumen_salvar_guia", { p_cliente: atual.id, p_marca: $("#iMarca").value, p_datas: { cliente: c.slug, nome: c.nome, datas: lerDatas(box) }, p_status: $("#iSt").value, p_horario: $("#iHora").value.trim() });
     e.target.disabled = false;
     if (er) return toast(er.message, true);
-    toast("Salvo! O robô usa a nova versão na próxima peça."); await carregar();
+    toast("Salvo! O robô usa a nova versão na próxima peça."); await carregar(); montarSeletor(); $("#selCliente").value = String(atual.id);
+  };
+  $("#iNovoCod").onclick = async () => { const { data, error } = await sb.rpc("lumen_telegram_cliente", { p_cliente: atual.id, p_acao: "novo_codigo" }); if (error) return toast(error.message, true); toast("Novo código: " + data.codigo); renderImplantacao(); };
+  if ($("#iDesv")) $("#iDesv").onclick = async () => { if (!confirm("Desvincular o Telegram? O cliente para de receber as prévias até vincular de novo.")) return; const { error } = await sb.rpc("lumen_telegram_cliente", { p_cliente: atual.id, p_acao: "desvincular" }); if (error) return toast(error.message, true); toast("Telegram desvinculado"); await carregar(); renderImplantacao(); };
+  if ($("#iExcluir")) $("#iExcluir").onclick = async () => {
+    const n = prompt(`Para excluir, digite o nome do cliente exatamente como está:\n${c.nome}`); if (n === null) return;
+    const { error } = await sb.rpc("lumen_excluir_cliente", { p_cliente: atual.id, p_confirmacao: n }); if (error) return toast(error.message, true);
+    toast("Cliente excluído"); atual = null; modo = "equipe"; history.replaceState(null, "", location.pathname); await carregar(); montarSeletor(); render();
   };
 }
 
@@ -755,7 +776,7 @@ function renderCliente(silencioso) {
     <div class="cab"><div><h2>${esc(atual.nome)}</h2><p>${esc(atual.instagram || "")} · Pacote ${esc(atual.pacote || "—")} · publicações às ${esc(atual.horario_publicacao || "18:30")}</p></div></div>
     ${pr.length ? `<div class="obs" style="border-color:rgba(239,68,68,.5);margin-bottom:14px">${pr.map((x) => `<div style="color:#fca5a5">⚠ ${esc(x)}</div>`).join("")}</div>` : ""}
     <nav class="abas">
-      ${[["aprovar", "Para aprovar", pend.length], ["agenda", "Agenda"], ["publicados", "Publicados", pub.length], ["arquivos", "Arquivos"]].concat(eu.equipe ? [["implantacao", "Implantação"]] : [])
+      ${[["aprovar", "Para aprovar", pend.length], ["agenda", "Agenda"], ["publicados", "Publicados", pub.length], ["arquivos", "Arquivos"]].concat(eu.equipe ? [["implantacao", "Gestão"]] : [])
         .map(([k, t, n]) => `<button class="aba ${aba === k ? "on" : ""}" data-aba="${k}">${t}${n ? `<em>${n}</em>` : ""}</button>`).join("")}
     </nav>${corpo}`;
   document.querySelectorAll("[data-aba]").forEach((b) => (b.onclick = () => { aba = b.dataset.aba; render(); }));
