@@ -329,48 +329,184 @@ function ligarDatas(box) {
 }
 function lerDatasCru(box) { return [...box.querySelectorAll("#dtLista .item")].map((r) => ({ data: $(".dtD", r).value, nome: $(".dtN", r).value, orientacao: $(".dtO", r).value })); }
 
+// ---------- kit de implantação (equipe) ----------
+const SEG = {
+  contabilidade: { nome: "Escritório de contabilidade", pilares: ["Prazos e obrigações do mês", "Gestão financeira para PMEs", "Dúvidas e mitos sobre impostos", "Abertura e regularização de empresas", "Bastidores do escritório"], datas: [["04-25", "Dia do Contabilista"], ["09-09", "Dia do Administrador"], ["09-22", "Dia do Contador"], ["10-05", "Dia da Micro e Pequena Empresa"]] },
+  saude: { nome: "Clínica ou consultório", pilares: ["Prevenção e cuidados", "Dúvidas frequentes dos pacientes", "Conheça a equipe", "Estrutura e tecnologia", "Depoimentos (com autorização)"], datas: [["04-07", "Dia Mundial da Saúde"], ["08-27", "Dia do Psicólogo"], ["08-31", "Dia do Nutricionista"], ["10-18", "Dia do Médico"], ["10-25", "Dia do Dentista"]] },
+  varejo: { nome: "Loja ou rede de varejo", pilares: ["Novidades e lançamentos", "Dicas de uso dos produtos", "Condições e promoções", "Bastidores da loja", "Clientes e comunidade"], datas: [["03-15", "Dia do Consumidor"], ["09-15", "Dia do Cliente"], ["11-27", "Black Friday (última sexta de novembro)"]] },
+  industria: { nome: "Indústria", pilares: ["Processo e qualidade", "Pessoas e segurança no dia a dia", "Produtos e aplicações", "Bastidores da fábrica", "Vagas e carreira"], datas: [["05-25", "Dia da Indústria"], ["12-11", "Dia do Engenheiro"]] },
+  alimentacao: { nome: "Restaurante ou alimentação", pilares: ["Pratos e cardápio", "Bastidores da cozinha", "Ingredientes e origem", "Promoções do dia", "Clientes e eventos"], datas: [["07-10", "Dia da Pizza"], ["10-16", "Dia Mundial da Alimentação"]] },
+  educacao: { nome: "Escola ou cursos", pilares: ["Dicas de estudo", "Projetos e conquistas dos alunos", "Conheça os professores", "Matrículas e cursos", "Família e escola"], datas: [["08-11", "Dia do Estudante"], ["10-15", "Dia do Professor"]] },
+  construcao: { nome: "Construção e engenharia", pilares: ["Obras entregues", "Dicas para quem vai construir ou reformar", "Bastidores da obra", "Materiais e técnicas", "Equipe"], datas: [["12-11", "Dia do Engenheiro"], ["12-15", "Dia do Arquiteto"]] },
+  servicos: { nome: "Prestação de serviços (outros)", pilares: ["Dicas práticas para o cliente", "Como funciona o serviço", "Bastidores e equipe", "Casos resolvidos", "Perguntas frequentes"], datas: [["09-15", "Dia do Cliente"], ["10-05", "Dia da Micro e Pequena Empresa"]] },
+};
+const TOM = { proximo: "Próximo e simples, como quem conversa com o cliente no balcão", tecnico: "Técnico e confiável, explica com clareza sem jargão", leve: "Leve e bem-humorado, sem perder a seriedade", sofisticado: "Sofisticado e direto, frases curtas e elegantes" };
+const KSTEPS = [
+  { id: "empresa", nome: "Empresa", lead: "Dados básicos para o robô saber quem é o cliente e para o contrato.", fields: [
+    { k: "fantasia", t: "text", l: "Nome da empresa (como aparece nos posts)", req: 1, who: "Cliente" },
+    { k: "razao", t: "text", l: "Razão social e CNPJ (para o contrato)", req: 1, who: "Cliente" },
+    { k: "segmento", t: "select", l: "Segmento", req: 1, who: "Juntos", opts: () => Object.entries(SEG).map(([k, v]) => [k, v.nome]), hint: "Sugere pilares e datas do setor." },
+    { k: "cidade", t: "text", l: "Cidade / UF", req: 1, who: "Cliente" },
+    { k: "fundacao", t: "date", l: "Data de fundação", who: "Cliente", hint: "Entra no calendário como aniversário da empresa." },
+    { k: "instagram", t: "text", l: "@ do Instagram", req: 1, who: "Cliente" },
+    { k: "whatsapp", t: "text", l: "WhatsApp comercial", req: 1, who: "Cliente" },
+    { k: "site", t: "text", l: "Site ou link da bio", who: "Cliente" },
+    { k: "descricao", t: "textarea", l: "O que a empresa faz, em 2 ou 3 frases", req: 1, who: "Cliente", full: 1 } ] },
+  { id: "oferta", nome: "Oferta e público", lead: "É daqui que saem os temas. Quanto mais concreto, melhor o conteúdo.", fields: [
+    { k: "servicos", t: "textarea", l: "Serviços ou produtos (um por linha)", req: 1, who: "Cliente" },
+    { k: "diferenciais", t: "textarea", l: "Por que os clientes escolhem vocês", who: "Cliente" },
+    { k: "publico", t: "textarea", l: "Cliente ideal (quem compra)", req: 1, who: "Cliente" },
+    { k: "dores", t: "textarea", l: "Dúvidas e problemas que esse cliente traz", req: 1, who: "Cliente", hint: "Cada dúvida vira um post." },
+    { k: "destaque", t: "text", l: "O que mais quer vender nos próximos 3 meses", who: "Cliente" },
+    { k: "regiao", t: "text", l: "Região atendida", who: "Cliente" } ] },
+  { id: "marca", nome: "Marca", lead: "Identidade visual e tom de voz. Vira o guia de marca que o robô lê antes de cada peça.", fields: [
+    { k: "cores", t: "colors", l: "Cores da marca (principal, apoio, destaque)", full: 1 },
+    { k: "tom", t: "select", l: "Tom de voz", req: 1, who: "Juntos", opts: () => Object.entries(TOM) },
+    { k: "fonte", t: "text", l: "Fonte da marca (se houver)", who: "Cliente" },
+    { k: "cta", t: "text", l: "Chamada padrão (CTA)", req: 1, who: "Juntos", hint: "Ex.: Chame no WhatsApp e agende uma conversa." },
+    { k: "proibidos", t: "textarea", l: "Temas e palavras proibidos", who: "Cliente", hint: "Concorrentes, política, preços, promessas que não pode fazer." },
+    { k: "referencias", t: "textarea", l: "Perfis de referência que o cliente admira", who: "Cliente" },
+    { k: "_m", t: "title", l: "Materiais" },
+    { k: "coresOk", t: "check", l: "Cores confirmadas pelo cliente", req: 1, who: "Cliente" },
+    { k: "logoCor", t: "check", l: "Logo colorida em PNG com fundo transparente", req: 1, who: "Cliente" },
+    { k: "logoBranco", t: "check", l: "Logo branca em PNG com fundo transparente", who: "Cliente" },
+    { k: "exemplos", t: "check", l: "3 posts que o cliente gosta e 3 que não gosta", who: "Cliente" } ] },
+  { id: "conteudo", nome: "Conteúdo", lead: "Pilares do rodízio semanal e calendário de datas.", fields: [
+    { k: "pilares", t: "pilares", l: "Pilares de conteúdo (escolha de 3 a 5)", req: 1, who: "Juntos", full: 1 },
+    { k: "datasSetor", t: "datas", l: "Datas do setor", full: 1 },
+    { k: "datasProprias", t: "textarea", l: "Datas próprias (DD/MM - nome, uma por linha)", who: "Cliente", full: 1, hint: "Inauguração, campanhas, semana do cliente…" },
+    { k: "fotosReais", t: "check", l: "Fotos reais enviadas (equipe, espaço, produtos)", who: "Cliente", hint: "Opcional. Sem fotos, o robô usa imagens 3D geradas por IA." } ] },
+  { id: "pacote", nome: "Pacote", lead: "Quantos posts, em que dias e em que horário.", fields: [
+    { k: "pacote", t: "select", l: "Pacote", req: 1, who: "Juntos", opts: () => Object.entries(PACOTES) },
+    { k: "horario", t: "select", l: "Horário dos posts no feed", who: "Juntos", opts: () => [["11:30", "11h30"], ["12:00", "12h"], ["18:30", "18h30"], ["19:00", "19h"]] },
+    { k: "avatarOk", t: "check", l: "Avatar e voz do dono gravados no HeyGen", who: "Juntos", reqIf: (c) => c.pacote === "premium", showIf: (c) => c.pacote === "premium" } ] },
+  { id: "canais", nome: "Aprovação e Instagram", lead: "Quem aprova e como o post chega ao Instagram.", fields: [
+    { k: "aprovador", t: "text", l: "Quem aprova (nome e função)", req: 1, who: "Cliente" },
+    { k: "emailAprovador", t: "text", l: "E-mail de quem aprova (vira o login do painel)", req: 1, who: "Cliente" },
+    { k: "aprovador2", t: "text", l: "Substituto nas férias", who: "Cliente" },
+    { k: "prazo", t: "select", l: "Prazo para aprovar cada peça", who: "Juntos", opts: () => [["24", "24 horas"], ["48", "48 horas"]] },
+    { k: "_i", t: "title", l: "Instagram" },
+    { k: "igProf", t: "check", l: "Instagram em conta profissional (Empresa ou Criador)", req: 1, who: "Cliente" },
+    { k: "testador", t: "check", l: "Convite de Testador do Instagram aceito (app Lúmen Publicador)", req: 1, who: "Lúmen", hint: "A Lúmen convida pelo painel da Meta; o cliente aceita em Configurações › Apps e sites." },
+    { k: "_n", t: "note", l: "Nunca pedir senha do Instagram, do Facebook ou de banco. Todo acesso é por convite." } ] },
+  { id: "contrato", nome: "Contrato e LGPD", lead: "O que precisa estar assinado e pago antes da primeira peça.", fields: [
+    { k: "financeiro", t: "text", l: "Responsável financeiro (nome e e-mail)", req: 1, who: "Cliente", full: 1 },
+    { k: "contrato", t: "check", l: "Contrato assinado", req: 1, who: "Juntos" },
+    { k: "termoDados", t: "check", l: "Termo de tratamento de dados (LGPD)", req: 1, who: "Juntos" },
+    { k: "cienciaIA", t: "check", l: "Ciente da marcação de conteúdo feito com IA", req: 1, who: "Cliente" },
+    { k: "autImagem", t: "check", l: "Autorização de uso de imagem de quem aparece", who: "Cliente", reqIf: (c) => !!(c.fotosReais || c.pacote === "premium") },
+    { k: "consentAvatar", t: "check", l: "Consentimento do dono para o avatar (HeyGen)", who: "Cliente", reqIf: (c) => c.pacote === "premium", showIf: (c) => c.pacote === "premium" },
+    { k: "pagamento", t: "check", l: "Implantação e 1ª mensalidade pagas", req: 1, who: "Cliente" } ] },
+  { id: "gerar", nome: "Guia e criação", lead: "Anotações livres e geração do guia de marca com IA." },
+];
+const KIT_KEY = "lumen-kit-rascunho-v1";
+let kit = null, kstep = 0;
+function kitNovo() { return { cores: ["#0B2545", "#1F6FD1", "#F5B700"], pilares: [], datasSetor: {}, horario: "18:30", prazo: "24", pacote: "start" }; }
+function kitCarregar() { try { kit = JSON.parse(localStorage.getItem(KIT_KEY) || "null"); } catch (e) { kit = null; } if (!kit) kit = kitNovo(); }
+function kitSalvar() { try { localStorage.setItem(KIT_KEY, JSON.stringify(kit)); } catch (e) {} }
+const kShown = (f) => (f.showIf ? f.showIf(kit) : true);
+const kReq = (f) => (f.reqIf ? f.reqIf(kit) : !!f.req);
+function kFilled(f) { const v = kit[f.k]; if (f.t === "pilares") return (v || []).length >= 3; if (f.t === "check") return !!v; return !!String(v ?? "").trim(); }
+function kPend() { const out = []; KSTEPS.forEach((s, i) => (s.fields || []).forEach((f) => { if (kShown(f) && kReq(f) && !kFilled(f)) out.push({ i, s: s.nome, l: f.l, who: f.who || "Juntos" }); })); return out; }
+
+function kCampo(f) {
+  const v = kit[f.k], st = 'style="width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;outline:none"';
+  const lab = `<span>${esc(f.l)}${kReq(f) ? ' <b style="color:var(--ac)">*</b>' : ""}${f.who ? ` <em class="mono" style="font-style:normal;font-size:10.5px;color:var(--tx2)">· ${f.who}</em>` : ""}</span>`;
+  const hint = f.hint ? `<small style="display:block;color:var(--tx2);font-size:11.5px;margin-top:4px">${esc(f.hint)}</small>` : "";
+  const full = f.full ? "grid-column:1/-1;" : "";
+  if (f.t === "title") return `<h3 style="grid-column:1/-1;margin-top:8px;font-size:14px">${esc(f.l)}</h3>`;
+  if (f.t === "note") return `<div class="obs" style="grid-column:1/-1">${esc(f.l)}</div>`;
+  if (f.t === "check") return `<label style="grid-column:1/-1;display:flex;gap:10px;align-items:flex-start;cursor:pointer"><input type="checkbox" data-k="${f.k}" ${v ? "checked" : ""} style="margin-top:3px;accent-color:var(--ac)"><span>${esc(f.l)}${kReq(f) ? ' <b style="color:var(--ac)">*</b>' : ""}${hint}</span></label>`;
+  if (f.t === "textarea") return `<label class="campo" style="${full}">${lab}<textarea data-k="${f.k}" rows="3" ${st}>${esc(v || "")}</textarea>${hint}</label>`;
+  if (f.t === "select") return `<label class="campo" style="${full}">${lab}<select data-k="${f.k}" ${st}><option value="">Escolha…</option>${f.opts().map(([k, t]) => `<option value="${k}" ${v === k ? "selected" : ""}>${esc(t)}</option>`).join("")}</select>${hint}</label>`;
+  if (f.t === "colors") return `<div class="campo" style="${full}">${lab}<div style="display:flex;gap:10px;flex-wrap:wrap">${(v || []).map((c, i) => `<label style="display:flex;align-items:center;gap:6px;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:6px 10px"><input type="color" data-cor="${i}" value="${esc(c)}" style="width:34px;height:28px;border:none;background:none"><span class="mono" style="font-size:12px">${esc(c)}</span></label>`).join("")}</div></div>`;
+  if (f.t === "pilares") {
+    const sug = SEG[kit.segmento]?.pilares || [], sel = v || [], todos = [...new Set([...sug, ...sel])];
+    return `<div class="campo" style="${full}">${lab}<div style="display:flex;gap:6px;flex-wrap:wrap">${todos.map((p) => `<button type="button" class="aba ${sel.includes(p) ? "on" : ""}" data-pilar="${esc(p)}">${esc(p)}</button>`).join("") || '<small style="color:var(--tx2)">Escolha o segmento na etapa Empresa para ver sugestões.</small>'}</div>
+      <div style="display:flex;gap:8px;margin-top:8px"><input id="kPilarNovo" placeholder="Outro pilar…" ${st}><button type="button" class="btn" id="kPilarAdd">Adicionar</button></div></div>`;
+  }
+  if (f.t === "datas") {
+    const ds = SEG[kit.segmento]?.datas || [];
+    return `<div class="campo" style="${full}">${lab}${ds.length ? ds.map(([d, n]) => `<label style="display:flex;gap:10px;align-items:center;margin:4px 0;cursor:pointer"><input type="checkbox" data-data="${d}|${esc(n)}" ${(kit.datasSetor || {})[d + "|" + n] !== false ? "checked" : ""} style="accent-color:var(--ac)"><span class="mono" style="font-size:12px;color:var(--tx2)">${d.slice(3)}/${d.slice(0, 2)}</span> ${esc(n)}</label>`).join("") : '<small style="color:var(--tx2)">Escolha o segmento para ver as datas sugeridas.</small>'}<small style="display:block;color:var(--tx2);font-size:11.5px;margin-top:4px">A IA ainda sugere outras datas do setor na geração do guia.</small></div>`;
+  }
+  return `<label class="campo" style="${full}">${lab}<input type="${f.t === "date" ? "date" : "text"}" data-k="${f.k}" value="${esc(v || "")}" ${st}>${hint}</label>`;
+}
+
 function renderNovo() {
-  const r = rascunho || (rascunho = { pacote: "start", horario: "18:30" });
+  if (!kit) kitCarregar();
+  const pend = kPend(), total = KSTEPS.reduce((a, s) => a + (s.fields || []).filter((f) => kShown(f) && kReq(f)).length, 0);
+  const pct = total ? Math.round(((total - pend.length) / total) * 100) : 0;
+  const s = KSTEPS[kstep];
+  const porQuem = {}; pend.forEach((p) => (porQuem[p.who] = (porQuem[p.who] || 0) + 1));
   $("#conteudo").innerHTML = `
     <button class="voltar" id="voltarN">← Todos os clientes</button>
-    <div class="cab"><div><h2>Implantar cliente novo</h2><p>Cole o briefing do kit de implantação. A IA monta o guia de marca e as datas; você revisa e cria o cliente.</p></div></div>
-    <div class="grade" style="grid-template-columns:repeat(auto-fit,minmax(300px,1fr));align-items:start">
-      <div class="post"><div class="corpo">
-        <h3>1. Dados do cliente</h3>
-        <label class="campo"><span>Nome da empresa *</span><input id="nNome" value="${esc(r.nome || "")}"></label>
-        <label class="campo"><span>Instagram</span><input id="nIg" value="${esc(r.instagram || "")}" placeholder="@perfil"></label>
-        <label class="campo"><span>Site</span><input id="nSite" value="${esc(r.site || "")}" placeholder="https://"></label>
-        <label class="campo"><span>Pacote</span><select id="nPac" class="campo-sel">${Object.entries(PACOTES).map(([k, t]) => `<option value="${k}" ${r.pacote === k ? "selected" : ""}>${t}</option>`).join("")}</select></label>
-        <label class="campo"><span>Horário das publicações</span><input id="nHora" value="${esc(r.horario || "18:30")}" placeholder="18:30"></label>
-        <h3 style="margin-top:6px">Contato do cliente</h3>
-        <label class="campo"><span>Nome</span><input id="nCont" value="${esc(r.nome_contato || "")}"></label>
-        <label class="campo"><span>E-mail (cria o acesso ao painel)</span><input id="nEmail" type="email" value="${esc(r.email_cliente || "")}"></label>
-        <label class="campo"><span>WhatsApp</span><input id="nWhats" value="${esc(r.whatsapp || "")}"></label>
-      </div></div>
-      <div class="post"><div class="corpo">
-        <h3>2. Briefing / prompt do kit</h3>
-        <p style="color:var(--tx2);font-size:12.5px">Cole tudo: respostas do kit de implantação, prompt, anotações da reunião, textos do site e do Instagram.</p>
-        <textarea id="nBrief" style="min-height:330px;width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:12px;resize:vertical;outline:none">${esc(r.briefing || "")}</textarea>
-        <div class="acoes"><button class="btn pri" id="nGerar">✨ Gerar guia com IA</button></div>
-      </div></div>
-    </div>
-    <div id="nRes" style="margin-top:16px"></div>`;
-  $("#conteudo").querySelectorAll(".campo-sel,#conteudo .campo input").forEach((e) => (e.style.cssText += ";width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:10px 12px"));
-  const guardar = () => Object.assign(r, { nome: $("#nNome").value.trim(), instagram: $("#nIg").value.trim(), site: $("#nSite").value.trim(), pacote: $("#nPac").value, horario: $("#nHora").value.trim(), nome_contato: $("#nCont").value.trim(), email_cliente: $("#nEmail").value.trim(), whatsapp: $("#nWhats").value.trim(), briefing: $("#nBrief").value });
-  $("#conteudo").querySelectorAll("input,select,textarea").forEach((e) => (e.oninput = guardar));
+    <div class="cab"><div><h2>Kit de implantação</h2><p>Preencha com o cliente na reunião (cerca de 1 hora). O rascunho fica salvo neste navegador.</p></div>
+      <div style="display:flex;gap:8px"><button class="btn" id="kLimpar">Começar do zero</button></div></div>
+    <div style="display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:16px;align-items:start" id="kGrid">
+      <div>
+        <nav class="abas">${KSTEPS.map((x, i) => { const p = pend.filter((q) => q.i === i).length; return `<button class="aba ${i === kstep ? "on" : ""}" data-kstep="${i}">${i + 1}. ${x.nome}${p ? `<em>${p}</em>` : x.fields ? " ✓" : ""}</button>`; }).join("")}</nav>
+        <div class="post"><div class="corpo">
+          <h3>${kstep + 1}. ${esc(s.nome)}</h3><p style="color:var(--tx2);font-size:13px">${esc(s.lead)}</p>
+          ${s.fields ? `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px 14px;margin-top:6px">${s.fields.filter(kShown).map(kCampo).join("")}</div>` : `
+            <label class="campo"><span>Anotações livres / prompt (opcional)</span><textarea data-k="notas" rows="7" style="width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:12px;outline:none" placeholder="Cole aqui textos do site, o prompt do kit, observações da reunião…">${esc(kit.notas || "")}</textarea></label>
+            ${pend.length ? `<div class="obs" style="border-color:rgba(234,179,8,.45)">Ainda faltam ${pend.length} item(ns) obrigatório(s). Você pode gerar o guia agora e completar depois na aba Implantação do cliente.</div>` : '<div class="obs" style="border-color:rgba(34,197,94,.45)">Cadastro completo ✓</div>'}
+            <div class="acoes"><button class="btn pri" id="nGerar">✨ Gerar guia com IA</button></div>`}
+          <div class="acoes" style="margin-top:14px">${kstep > 0 ? '<button class="btn" id="kAnt">← Anterior</button>' : ""}${kstep < KSTEPS.length - 1 ? '<button class="btn pri" id="kProx">Próxima →</button>' : ""}</div>
+        </div></div>
+        <div id="nRes" style="margin-top:16px"></div>
+      </div>
+      <aside class="post" style="position:sticky;top:76px"><div class="corpo">
+        <h3>Prontidão</h3>
+        <div style="height:8px;background:var(--card2);border-radius:99px;overflow:hidden"><i style="display:block;height:100%;width:${pct}%;background:var(--ac)"></i></div>
+        <p style="font-size:13px;color:var(--tx2)">${pct}% dos itens obrigatórios</p>
+        ${Object.entries(porQuem).map(([w, n]) => `<div class="sin ${w === "Cliente" ? "at" : ""}" style="display:inline-block;margin:2px">${w}: ${n}</div>`).join("")}
+        <div style="max-height:320px;overflow:auto;margin-top:8px">${pend.slice(0, 40).map((p) => `<div style="font-size:12px;color:var(--tx2);padding:4px 0;border-bottom:1px solid var(--line);cursor:pointer" data-kstep="${p.i}">• ${esc(p.l)} <span class="mono" style="font-size:10.5px">(${esc(p.s)})</span></div>`).join("") || '<p style="font-size:13px;color:#86efac">Tudo pronto ✓</p>'}</div>
+      </div></aside>
+    </div>`;
+  if (innerWidth < 860) $("#kGrid").style.gridTemplateColumns = "1fr";
+  const box = $("#conteudo");
+  box.querySelectorAll("[data-kstep]").forEach((b) => (b.onclick = () => { kstep = Number(b.dataset.kstep); renderNovo(); scrollTo(0, 0); }));
+  box.querySelectorAll("[data-k]").forEach((e) => {
+    const ev = e.type === "checkbox" || e.tagName === "SELECT" ? "onchange" : "oninput";
+    e[ev] = () => { kit[e.dataset.k] = e.type === "checkbox" ? e.checked : e.value; kitSalvar(); if (ev === "onchange") renderNovo(); };
+  });
+  box.querySelectorAll("[data-cor]").forEach((e) => (e.oninput = () => { kit.cores[Number(e.dataset.cor)] = e.value; e.nextElementSibling.textContent = e.value; kitSalvar(); }));
+  box.querySelectorAll("[data-pilar]").forEach((b) => (b.onclick = () => { const p = b.dataset.pilar, l = kit.pilares || (kit.pilares = []); l.includes(p) ? l.splice(l.indexOf(p), 1) : l.push(p); kitSalvar(); renderNovo(); }));
+  if ($("#kPilarAdd")) $("#kPilarAdd").onclick = () => { const t = $("#kPilarNovo").value.trim(); if (!t) return; (kit.pilares = kit.pilares || []).push(t); kitSalvar(); renderNovo(); };
+  box.querySelectorAll("[data-data]").forEach((e) => (e.onchange = () => { (kit.datasSetor = kit.datasSetor || {})[e.dataset.data] = e.checked; kitSalvar(); }));
+  if ($("#kAnt")) $("#kAnt").onclick = () => { kstep--; renderNovo(); scrollTo(0, 0); };
+  if ($("#kProx")) $("#kProx").onclick = () => { kstep++; renderNovo(); scrollTo(0, 0); };
   $("#voltarN").onclick = () => { modo = "equipe"; render(); };
-  $("#nGerar").onclick = async (e) => {
-    guardar(); if (!r.nome) return toast("Informe o nome da empresa", true);
-    if ((r.briefing || "").trim().length < 40) return toast("Cole o briefing do cliente antes de gerar", true);
-    e.target.disabled = true; e.target.textContent = "Gerando… (até 1 min)";
-    const g = await chamarFn("lumen-implantar", { acao: "gerar", ...r });
-    e.target.disabled = false; e.target.textContent = "✨ Gerar de novo";
-    if (!g) return;
-    Object.assign(r, { marca: g.marca, datas: g.datas || [], cta: g.cta, botao: g.botao, pendencias: g.pendencias || [] });
-    mostrarRevisao();
-  };
-  if (r.marca) mostrarRevisao();
+  $("#kLimpar").onclick = () => { if (!confirm("Apagar o rascunho e começar um cadastro novo?")) return; kit = kitNovo(); kstep = 0; rascunho = null; kitSalvar(); renderNovo(); };
+  if ($("#nGerar")) $("#nGerar").onclick = gerarDoKit;
+  if (rascunho?.marca && kstep === KSTEPS.length - 1) mostrarRevisao();
 }
+function kitBriefing() {
+  const k = kit, L = (t, v) => (String(v ?? "").trim() ? `${t}: ${String(v).trim()}\n` : "");
+  const datas = (SEG[k.segmento]?.datas || []).filter(([d, n]) => (k.datasSetor || {})[d + "|" + n] !== false).map(([d, n]) => `${d} ${n}`);
+  return [
+    "== EMPRESA ==", L("Nome", k.fantasia) + L("Razão social/CNPJ", k.razao) + L("Segmento", SEG[k.segmento]?.nome) + L("Cidade", k.cidade) + L("Fundação", k.fundacao) + L("Instagram", k.instagram) + L("WhatsApp", k.whatsapp) + L("Site", k.site) + L("Descrição", k.descricao),
+    "== OFERTA E PÚBLICO ==", L("Serviços/produtos", k.servicos) + L("Diferenciais", k.diferenciais) + L("Cliente ideal", k.publico) + L("Dúvidas e dores", k.dores) + L("Foco dos próximos 3 meses", k.destaque) + L("Região", k.regiao),
+    "== MARCA ==", L("Cores (principal, apoio, destaque)", (k.cores || []).join(", ")) + L("Tom de voz", TOM[k.tom]) + L("Fonte", k.fonte) + L("CTA padrão", k.cta) + L("Proibidos", k.proibidos) + L("Referências", k.referencias) + L("Fotos reais disponíveis", k.fotosReais ? "sim" : "não (usar imagens 3D geradas)"),
+    "== CONTEÚDO ==", L("Pilares escolhidos (use exatamente estes)", (k.pilares || []).join("; ")) + L("Datas do setor escolhidas (MM-DD)", datas.join("; ")) + L("Datas próprias", k.datasProprias),
+    "== OPERAÇÃO ==", L("Pacote", PACOTES[k.pacote]) + L("Horário", k.horario) + L("Aprovador", k.aprovador) + L("Prazo de aprovação (h)", k.prazo),
+    k.notas ? "== ANOTAÇÕES ==\n" + k.notas : "",
+  ].join("\n");
+}
+async function gerarDoKit(e) {
+  if (!String(kit.fantasia || "").trim()) { kstep = 0; renderNovo(); return toast("Informe o nome da empresa", true); }
+  rascunho = { nome: kit.fantasia.trim(), instagram: kit.instagram, site: kit.site, pacote: kit.pacote || "start", horario: kit.horario || "18:30", nome_contato: kit.aprovador, email_cliente: kit.emailAprovador, whatsapp: kit.whatsapp, briefing: kitBriefing(), kit };
+  e.target.disabled = true; e.target.textContent = "Gerando… (até 1 min)";
+  const g = await chamarFn("lumen-implantar", { acao: "gerar", ...rascunho });
+  e.target.disabled = false; e.target.textContent = "✨ Gerar de novo";
+  if (!g) return;
+  const escolhidas = (SEG[kit.segmento]?.datas || []).filter(([d, n]) => (kit.datasSetor || {})[d + "|" + n] !== false).map(([d, n]) => ({ data: d, nome: n, orientacao: "", prioridade: "media" }));
+  const todas = [...escolhidas, ...(g.datas || [])].filter((d, i, a) => a.findIndex((x) => x.data === d.data && x.nome.toLowerCase() === d.nome.toLowerCase()) === i);
+  Object.assign(rascunho, { marca: g.marca, datas: todas, cta: kit.cta || g.cta, botao: g.botao, pendencias: g.pendencias || [] });
+  mostrarRevisao();
+  $("#nRes").scrollIntoView({ behavior: "smooth" });
+}
+
 function mostrarRevisao() {
   const r = rascunho, box = $("#nRes");
   box.innerHTML = `<div class="post"><div class="corpo">
@@ -393,7 +529,7 @@ function mostrarRevisao() {
     e.target.disabled = true;
     const s = await chamarFn("lumen-implantar", { acao: "salvar", ...r });
     e.target.disabled = false; if (!s) return;
-    rascunho = null; await carregar();
+    rascunho = null; kit = kitNovo(); kstep = 0; kitSalvar(); await carregar();
     renderCriado(s);
   };
 }
