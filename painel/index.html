@@ -266,6 +266,8 @@ function problemas(c) {
 
 // ---------- render ----------
 function render(silencioso) {
+  if (silencioso && (modo === "novo" || (modo === "cliente" && aba === "implantacao"))) return;
+  if (modo === "novo") return renderNovo();
   if (modo === "equipe") return renderEquipe();
   renderCliente(silencioso);
 }
@@ -281,7 +283,7 @@ function renderEquipe() {
   lista.sort((a, b) => problemas(b).length - problemas(a).length);
   const foco = document.activeElement?.id === "buscaCli";
   $("#conteudo").innerHTML = `
-    <div class="cab"><div><h2>Visão da equipe</h2><p>Todos os clientes da Lúmen, com alertas de erro em destaque.</p></div></div>
+    <div class="cab"><div><h2>Visão da equipe</h2><p>Todos os clientes da Lúmen, com alertas de erro em destaque.</p></div><button class="btn pri" id="novoCliente">+ Novo cliente</button></div>
     <div class="kpis">
       <div class="kpi"><b>${ativos.length}</b><span>clientes ativos</span></div>
       <div class="kpi ${comProb.length ? "alerta" : ""}"><b>${comProb.length}</b><span>com problema</span></div>
@@ -297,8 +299,161 @@ function renderEquipe() {
   if (foco) { const i = $("#buscaCli"); i.focus(); i.setSelectionRange(i.value.length, i.value.length); }
   $("#soProb").onclick = () => { filtroProb = !filtroProb; renderEquipe(); };
   $("#novoAcesso").onclick = formAcesso; carregarAcessos();
+  $("#novoCliente").onclick = () => { modo = "novo"; history.replaceState(null, "", location.pathname); render(); };
   document.querySelectorAll(".cli").forEach((b) => (b.onclick = () => { atual = clientes.find((c) => String(c.id) === b.dataset.id); modo = "cliente"; aba = "aprovar"; $("#selCliente").value = String(atual.id); history.replaceState(null, "", "?cliente=" + atual.slug); render(); }));
 }
+// ---------- implantação (equipe) ----------
+const PACOTES = { start: "Start · 8 posts/mês", essencial: "Essencial · 12 posts + 8 stories", profissional: "Profissional · 16 posts + 4 Reels", premium: "Premium com vídeo · 20 posts + 8 Reels" };
+let rascunho = null;
+async function chamarFn(nome, corpo) {
+  const { data, error } = await sb.functions.invoke(nome, { body: corpo });
+  if (error) { let m = error.message; try { m = (await error.context.json()).erro || m; } catch (e) {} toast(m, true); return null; }
+  if (data?.erro) { toast(data.erro, true); return null; }
+  return data;
+}
+function datasHTML(lista) {
+  return `<div id="dtLista">${(lista || []).map((d, i) => `<div class="item" data-i="${i}" style="gap:8px;flex-wrap:wrap">
+    <input class="dtD mono" value="${esc(d.data || "")}" placeholder="MM-DD" style="width:84px">
+    <input class="dtN" value="${esc(d.nome || "")}" placeholder="Nome da data" style="flex:1;min-width:160px">
+    <input class="dtO" value="${esc(d.orientacao || "")}" placeholder="Orientação para o post" style="flex:2;min-width:200px">
+    <button class="btn er" data-dtrem="${i}" title="Remover">✕</button></div>`).join("")}</div>
+    <button class="btn" id="dtAdd" style="margin-top:4px">+ Data</button>`;
+}
+function lerDatas(box) {
+  return [...box.querySelectorAll("#dtLista .item")].map((r) => ({ data: $(".dtD", r).value.trim(), nome: $(".dtN", r).value.trim(), orientacao: $(".dtO", r).value.trim(), prioridade: "media" }))
+    .filter((d) => /^\d{2}-\d{2}$/.test(d.data) && d.nome).map((d) => ({ id: d.nome.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-"), ...d }));
+}
+function ligarDatas(box) {
+  box.querySelectorAll("[data-dtrem]").forEach((b) => (b.onclick = () => b.closest(".item").remove()));
+  $("#dtAdd", box).onclick = () => { const atual = lerDatasCru(box); atual.push({}); $("#dtWrap", box).innerHTML = datasHTML(atual); ligarDatas(box); };
+}
+function lerDatasCru(box) { return [...box.querySelectorAll("#dtLista .item")].map((r) => ({ data: $(".dtD", r).value, nome: $(".dtN", r).value, orientacao: $(".dtO", r).value })); }
+
+function renderNovo() {
+  const r = rascunho || (rascunho = { pacote: "start", horario: "18:30" });
+  $("#conteudo").innerHTML = `
+    <button class="voltar" id="voltarN">← Todos os clientes</button>
+    <div class="cab"><div><h2>Implantar cliente novo</h2><p>Cole o briefing do kit de implantação. A IA monta o guia de marca e as datas; você revisa e cria o cliente.</p></div></div>
+    <div class="grade" style="grid-template-columns:repeat(auto-fit,minmax(300px,1fr));align-items:start">
+      <div class="post"><div class="corpo">
+        <h3>1. Dados do cliente</h3>
+        <label class="campo"><span>Nome da empresa *</span><input id="nNome" value="${esc(r.nome || "")}"></label>
+        <label class="campo"><span>Instagram</span><input id="nIg" value="${esc(r.instagram || "")}" placeholder="@perfil"></label>
+        <label class="campo"><span>Site</span><input id="nSite" value="${esc(r.site || "")}" placeholder="https://"></label>
+        <label class="campo"><span>Pacote</span><select id="nPac" class="campo-sel">${Object.entries(PACOTES).map(([k, t]) => `<option value="${k}" ${r.pacote === k ? "selected" : ""}>${t}</option>`).join("")}</select></label>
+        <label class="campo"><span>Horário das publicações</span><input id="nHora" value="${esc(r.horario || "18:30")}" placeholder="18:30"></label>
+        <h3 style="margin-top:6px">Contato do cliente</h3>
+        <label class="campo"><span>Nome</span><input id="nCont" value="${esc(r.nome_contato || "")}"></label>
+        <label class="campo"><span>E-mail (cria o acesso ao painel)</span><input id="nEmail" type="email" value="${esc(r.email_cliente || "")}"></label>
+        <label class="campo"><span>WhatsApp</span><input id="nWhats" value="${esc(r.whatsapp || "")}"></label>
+      </div></div>
+      <div class="post"><div class="corpo">
+        <h3>2. Briefing / prompt do kit</h3>
+        <p style="color:var(--tx2);font-size:12.5px">Cole tudo: respostas do kit de implantação, prompt, anotações da reunião, textos do site e do Instagram.</p>
+        <textarea id="nBrief" style="min-height:330px;width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:12px;resize:vertical;outline:none">${esc(r.briefing || "")}</textarea>
+        <div class="acoes"><button class="btn pri" id="nGerar">✨ Gerar guia com IA</button></div>
+      </div></div>
+    </div>
+    <div id="nRes" style="margin-top:16px"></div>`;
+  $("#conteudo").querySelectorAll(".campo-sel,#conteudo .campo input").forEach((e) => (e.style.cssText += ";width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:10px 12px"));
+  const guardar = () => Object.assign(r, { nome: $("#nNome").value.trim(), instagram: $("#nIg").value.trim(), site: $("#nSite").value.trim(), pacote: $("#nPac").value, horario: $("#nHora").value.trim(), nome_contato: $("#nCont").value.trim(), email_cliente: $("#nEmail").value.trim(), whatsapp: $("#nWhats").value.trim(), briefing: $("#nBrief").value });
+  $("#conteudo").querySelectorAll("input,select,textarea").forEach((e) => (e.oninput = guardar));
+  $("#voltarN").onclick = () => { modo = "equipe"; render(); };
+  $("#nGerar").onclick = async (e) => {
+    guardar(); if (!r.nome) return toast("Informe o nome da empresa", true);
+    if ((r.briefing || "").trim().length < 40) return toast("Cole o briefing do cliente antes de gerar", true);
+    e.target.disabled = true; e.target.textContent = "Gerando… (até 1 min)";
+    const g = await chamarFn("lumen-implantar", { acao: "gerar", ...r });
+    e.target.disabled = false; e.target.textContent = "✨ Gerar de novo";
+    if (!g) return;
+    Object.assign(r, { marca: g.marca, datas: g.datas || [], cta: g.cta, botao: g.botao, pendencias: g.pendencias || [] });
+    mostrarRevisao();
+  };
+  if (r.marca) mostrarRevisao();
+}
+function mostrarRevisao() {
+  const r = rascunho, box = $("#nRes");
+  box.innerHTML = `<div class="post"><div class="corpo">
+    <h3>3. Revise o guia de marca</h3>
+    ${r.pendencias?.length ? `<div class="obs" style="border-color:rgba(234,179,8,.45)"><b>Confirmar com o cliente:</b><br>${r.pendencias.map((p) => "• " + esc(p)).join("<br>")}</div>` : ""}
+    <textarea id="nMarca" style="min-height:420px;width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:12px;font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:1.5;resize:vertical;outline:none">${esc(r.marca || "")}</textarea>
+    <div class="grade" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px">
+      <label class="campo"><span>Chamada padrão (fim das legendas)</span><input id="nCta" value="${esc(r.cta || "")}"></label>
+      <label class="campo"><span>Botão das artes</span><input id="nBot" value="${esc(r.botao || "")}"></label>
+    </div>
+    <h3>Datas comemorativas</h3><div id="dtWrap">${datasHTML(r.datas)}</div>
+    <div class="acoes"><button class="btn pri" id="nSalvar">Salvar e criar cliente</button></div>
+  </div></div>`;
+  box.querySelectorAll(".campo input").forEach((e) => (e.style.cssText += ";width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:10px 12px"));
+  ligarDatas(box);
+  $("#nMarca").oninput = () => (r.marca = $("#nMarca").value);
+  $("#nSalvar").onclick = async (e) => {
+    r.marca = $("#nMarca").value; r.cta = $("#nCta").value.trim(); r.botao = $("#nBot").value.trim(); r.datas = lerDatas(box);
+    if (!confirm(`Criar o cliente "${r.nome}" no pacote ${r.pacote}?`)) return;
+    e.target.disabled = true;
+    const s = await chamarFn("lumen-implantar", { acao: "salvar", ...r });
+    e.target.disabled = false; if (!s) return;
+    rascunho = null; await carregar();
+    renderCriado(s);
+  };
+}
+function renderCriado(s) {
+  const c = clientes.find((x) => x.id === s.id) || { nome: s.slug, instagram: "" };
+  const msgTg = `Para aprovar seus posts pelo celular:\n1. Abra o Telegram e procure @lumen_aprovacao_bot\n2. Toque em Iniciar\n3. Envie: /vincular ${s.codigo}`;
+  const msgAc = s.acesso?.senha ? `Seu acesso ao Painel Lúmen\nLink: https://sejalumen.com.br/painel/\nE-mail: ${s.acesso.email}\nSenha provisória: ${s.acesso.senha}\n\nDepois de entrar, troque a senha no ícone 🔑 no topo.` : "";
+  $("#conteudo").innerHTML = `
+    <div class="cab"><div><h2>${esc(c.nome)} criado ✓</h2><p>Status: implantação. Siga os passos abaixo para ligar o robô.</p></div></div>
+    <div class="clis">
+      <div class="cli" style="cursor:default"><div><div class="n">1. Telegram de aprovação</div><p style="color:var(--tx2);font-size:13px;margin-top:4px">Envie ao cliente. Quando ele vincular, o robô começa a mandar as prévias.</p><pre class="obs" style="white-space:pre-wrap;margin-top:8px">${esc(msgTg)}</pre></div><div class="lado"><button class="btn pri" data-copiar="tg">Copiar</button></div></div>
+      ${msgAc ? `<div class="cli" style="cursor:default"><div><div class="n">2. Acesso ao painel</div><p style="color:var(--tx2);font-size:13px;margin-top:4px">A senha não aparece de novo.</p><pre class="obs" style="white-space:pre-wrap;margin-top:8px">${esc(msgAc)}</pre></div><div class="lado"><button class="btn pri" data-copiar="ac">Copiar</button></div></div>` : `<div class="cli" style="cursor:default"><div><div class="n">2. Acesso ao painel</div><p style="color:var(--tx2);font-size:13px;margin-top:4px">${s.acesso ? "O e-mail já tinha login; ele entra com a senha que já usa." : "Nenhum e-mail informado. Crie depois em Acessos."}</p></div></div>`}
+      <div class="cli" style="cursor:default"><div><div class="n">3. Instagram (publicação automática)</div><p style="color:var(--tx2);font-size:13px;margin-top:4px">No app <b>Lúmen Publicador</b> (developers.facebook.com): Funções do app › adicionar <b>${esc(c.instagram || "o perfil")}</b> como <b>Testador do Instagram</b>. O cliente aceita o convite no Instagram (Configurações › Apps e sites). Depois a equipe gera o token e cadastra no servidor.</p></div></div>
+      <div class="cli" style="cursor:default"><div><div class="n">4. Revisar e ativar</div><p style="color:var(--tx2);font-size:13px;margin-top:4px">Na aba <b>Implantação</b> do cliente você edita o guia, as datas e muda o status para <b>ativo</b>.</p></div><div class="lado"><button class="btn pri" id="abrirCli">Abrir cliente</button></div></div>
+    </div>`;
+  $("#conteudo").querySelectorAll("[data-copiar]").forEach((b) => (b.onclick = async () => { try { await navigator.clipboard.writeText(b.dataset.copiar === "tg" ? msgTg : msgAc); toast("Copiado!"); } catch (e) { toast("Selecione e copie manualmente", true); } }));
+  $("#abrirCli").onclick = () => { atual = clientes.find((x) => x.id === s.id); if (!atual) return; modo = "cliente"; aba = "implantacao"; montarSeletor(); $("#selCliente").value = String(atual.id); history.replaceState(null, "", "?cliente=" + atual.slug); render(); };
+}
+
+async function renderImplantacao() {
+  const box = $("#implant"); if (!box || !atual) return;
+  const [{ data: c, error }, { data: cod }, { data: ac }] = await Promise.all([
+    sb.from("lumen_clientes").select("*").eq("id", atual.id).single(),
+    sb.rpc("lumen_codigo_vinculo", { p_cliente: atual.id }),
+    sb.from("lumen_acessos").select("email").eq("cliente_id", atual.id),
+  ]);
+  if (error) { box.innerHTML = `<div class="vazio">${esc(error.message)}</div>`; return; }
+  const ok = (v) => `<span class="sin ${v ? "ok" : "no"}">${v ? "✓" : "pendente"}</span>`;
+  const lista = (c.datas && (c.datas.datas || c.datas)) || [];
+  box.innerHTML = `
+    <div class="clis" style="margin-bottom:16px">
+      <div class="cli" style="cursor:default"><div><div class="n">Checklist da implantação</div><div class="sinais">
+        ${ok(!!c.marca)} <span class="sin">Guia de marca</span>
+        ${ok(!!c.telegram_chat_id)} <span class="sin">Telegram vinculado${!c.telegram_chat_id && cod ? ` · código <b class="mono">${esc(cod)}</b>` : ""}</span>
+        ${ok(!!c.ig_user_id)} <span class="sin">Instagram conectado</span>
+        ${ok((ac || []).length)} <span class="sin">Acesso ao painel</span>
+      </div></div></div>
+    </div>
+    <div class="post"><div class="corpo">
+      <div class="grade" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px">
+        <label class="campo"><span>Status</span><select id="iSt">${["implantacao", "ativo", "pausado", "cancelado"].map((s) => `<option ${c.status === s ? "selected" : ""}>${s}</option>`).join("")}</select></label>
+        <label class="campo"><span>Horário das publicações</span><input id="iHora" value="${esc(c.horario_publicacao || "18:30")}"></label>
+      </div>
+      <h3>Guia de marca (o robô lê antes de cada post)</h3>
+      <textarea id="iMarca" style="min-height:460px;width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:12px;font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:1.5;resize:vertical;outline:none">${esc(c.marca || "")}</textarea>
+      <h3>Datas comemorativas</h3><div id="dtWrap">${datasHTML(lista)}</div>
+      ${c.briefing ? `<details><summary style="cursor:pointer;color:var(--tx2);font-size:13px">Briefing original</summary><pre class="obs" style="white-space:pre-wrap;margin-top:8px;max-height:300px;overflow:auto">${esc(c.briefing)}</pre></details>` : ""}
+      <div class="acoes"><button class="btn pri" id="iSalvar">Salvar alterações</button></div>
+    </div></div>`;
+  box.querySelectorAll(".campo input,.campo select").forEach((e) => (e.style.cssText += ";width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:10px 12px"));
+  ligarDatas(box);
+  $("#iSalvar").onclick = async (e) => {
+    e.target.disabled = true;
+    const { error: er } = await sb.rpc("lumen_salvar_guia", { p_cliente: atual.id, p_marca: $("#iMarca").value, p_datas: { cliente: c.slug, nome: c.nome, datas: lerDatas(box) }, p_status: $("#iSt").value, p_horario: $("#iHora").value.trim() });
+    e.target.disabled = false;
+    if (er) return toast(er.message, true);
+    toast("Salvo! O robô usa a nova versão na próxima peça."); await carregar();
+  };
+}
+
 // ---------- acessos (equipe) ----------
 async function carregarAcessos() {
   const box = $("#acessos"); if (!box) return;
@@ -393,12 +548,13 @@ function renderCliente(silencioso) {
   else if (aba === "agenda") corpo = renderAgenda(ps);
   else if (aba === "publicados") corpo = pub.length ? `<div class="grade">${pub.map(cardPost).join("")}</div>` : '<div class="vazio">Ainda não há posts publicados.</div>';
   else if (aba === "arquivos") corpo = renderArquivos(ps);
+  else if (aba === "implantacao") { corpo = '<div id="implant"><div class="vazio">Carregando…</div></div>'; setTimeout(renderImplantacao, 0); }
   $("#conteudo").innerHTML = `
     ${eu.equipe ? '<button class="voltar" id="voltar">← Todos os clientes</button>' : ""}
     <div class="cab"><div><h2>${esc(atual.nome)}</h2><p>${esc(atual.instagram || "")} · Pacote ${esc(atual.pacote || "—")} · publicações às ${esc(atual.horario_publicacao || "18:30")}</p></div></div>
     ${pr.length ? `<div class="obs" style="border-color:rgba(239,68,68,.5);margin-bottom:14px">${pr.map((x) => `<div style="color:#fca5a5">⚠ ${esc(x)}</div>`).join("")}</div>` : ""}
     <nav class="abas">
-      ${[["aprovar", "Para aprovar", pend.length], ["agenda", "Agenda"], ["publicados", "Publicados", pub.length], ["arquivos", "Arquivos"]]
+      ${[["aprovar", "Para aprovar", pend.length], ["agenda", "Agenda"], ["publicados", "Publicados", pub.length], ["arquivos", "Arquivos"]].concat(eu.equipe ? [["implantacao", "Implantação"]] : [])
         .map(([k, t, n]) => `<button class="aba ${aba === k ? "on" : ""}" data-aba="${k}">${t}${n ? `<em>${n}</em>` : ""}</button>`).join("")}
     </nav>${corpo}`;
   document.querySelectorAll("[data-aba]").forEach((b) => (b.onclick = () => { aba = b.dataset.aba; render(); }));
