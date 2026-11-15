@@ -130,6 +130,19 @@ main{max-width:1180px;margin:0 auto;padding:18px 16px 60px}
 .modal select,.modal input{width:100%;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;outline:none}
 .modal pre{white-space:pre-wrap;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;font-family:"JetBrains Mono",monospace;font-size:12.5px;margin-bottom:12px}
 .modal .acoes{margin-top:14px}
+/* saúde financeira (só equipe) */
+.sin.fin-verde{color:#86efac;border-color:rgba(34,197,94,.5);background:rgba(34,197,94,.1)}
+.sin.fin-amarelo{color:#fde047;border-color:rgba(234,179,8,.5);background:rgba(234,179,8,.1)}
+.sin.fin-vermelho{color:#fca5a5;border-color:rgba(239,68,68,.55);background:rgba(239,68,68,.12)}
+.fin{width:100%;border-collapse:collapse;font-size:13px}
+.fin th{font-weight:600;color:var(--tx2);text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+.fin td{padding:9px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+.fin td.n,.fin th.n{text-align:right;font-family:"JetBrains Mono",monospace}
+.fin tr.verde td:first-child{box-shadow:inset 3px 0 0 var(--ok)}.fin tr.amarelo td:first-child{box-shadow:inset 3px 0 0 var(--wa)}.fin tr.vermelho td:first-child{box-shadow:inset 3px 0 0 var(--er)}.fin tr.cinza td:first-child{box-shadow:inset 3px 0 0 #64748b}
+.finbox{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow-x:auto;margin-bottom:8px}
+.legfin{display:flex;gap:6px;flex-wrap:wrap;font-size:12px;color:var(--tx2);margin:8px 0 22px}
+.modal .grade2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.modal .grade2 label span,.modal label.campo span{font-size:12px;color:var(--tx2)}
 </style>
 </head>
 <body>
@@ -166,6 +179,7 @@ const PAUTA = { planejada: "Planejada", em_producao: "Em produção", produzida:
 const $ = (s, r = document) => r.querySelector(s);
 const esc = (t) => String(t ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const H = 3600e3;
+let fin = {}, param = null;
 let sb, eu = null, clientes = [], posts = [], pautas = [], atual = null, aba = "aprovar", modo = "cliente", filtroProb = false, recarregar = null;
 
 function dataBR(iso, comHora = true) {
@@ -237,6 +251,10 @@ async function carregar() {
   ]);
   if (c.error || p.error || a.error) { toast("Erro ao carregar dados", true); return; }
   clientes = c.data; posts = p.data; pautas = a.data;
+  if (eu?.equipe) {
+    const [f, pr] = await Promise.all([sb.from("lumen_financeiro").select("*"), sb.from("lumen_custos_param").select("params").eq("id", 1).maybeSingle()]);
+    fin = Object.fromEntries((f.data || []).map((x) => [x.cliente_id, x])); param = pr.data?.params || null;
+  }
   if (atual) atual = clientes.find((x) => x.id === atual.id) || atual;
 }
 
@@ -262,6 +280,103 @@ function problemas(c) {
   if (ativo && !c.ig_user_id) out.push("Instagram não conectado (não publica sozinho)");
   if (ativo && c.telegram_chat_id && (!c.ultimo_ciclo || Date.now() - new Date(c.ultimo_ciclo) > 2.5 * H)) out.push(`Robô sem rodar ${c.ultimo_ciclo ? ha(c.ultimo_ciclo) : "ainda"}`);
   return out;
+}
+
+// ---------- saúde financeira (equipe) ----------
+const brl = (v) => (v ?? 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+const mesSP = (iso) => iso ? new Date(iso.length === 10 ? iso + "T12:00:00-03:00" : iso).toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" }).slice(0, 7) : "";
+const MES_ATUAL = () => mesSP(new Date().toISOString());
+const FAIXA = { verde: "Saudável", amarelo: "Atenção", vermelho: "Abaixo do markup", cinza: "Sem preço" };
+function custoUnit(tipo, f) {
+  const t = (param?.tipos || {})[tipo === "reels" && f?.reels_avatar ? "reels_avatar" : tipo] || param?.tipos?.post_unico || { ia: 0, min: 0 };
+  return Number(t.ia || 0) + Number(t.min || 0) / 60 * Number(param?.hora || 0);
+}
+function financeiro(c, mes = MES_ATUAL()) {
+  if (!param) return null;
+  const f = fin[c.id] || {}, hora = Number(param.hora || 0);
+  const ps = posts.filter((p) => p.cliente_id === c.id && mesSP(p.data_publicacao || p.criado_em) === mes);
+  const comPost = new Set(ps.map((p) => p.pauta_id).filter(Boolean));
+  const pend = pautas.filter((a) => a.cliente_id === c.id && mesSP(a.data_prevista) === mes && !comPost.has(a.id) && ["planejada", "em_producao"].includes(a.status));
+  const qtd = {}; ps.forEach((p) => (qtd[p.tipo] = (qtd[p.tipo] || 0) + 1));
+  const ajustes = ps.reduce((s, p) => s + (p.ajustes || 0), 0);
+  const pecas = ps.reduce((s, p) => s + custoUnit(p.tipo, f), 0);
+  const cAjustes = ajustes * Number(param.minutos_ajuste || 0) / 60 * hora;
+  const gestao = Number(param.gestao_min || 0) / 60 * hora, fixo = Number(param.fixo || 0);
+  const realizado = pecas + cAjustes + gestao + fixo;
+  const previsto = pend.reduce((s, a) => s + custoUnit(a.tipo, f), 0);
+  const custo = realizado + previsto;
+  const preco = Number(f.preco_mensal || 0), alvo = Number(f.markup_alvo || param.markup_padrao || 2.5);
+  const markup = preco && custo ? preco / custo : null;
+  const faixa = !preco ? "cinza" : markup >= alvo ? "verde" : markup >= alvo * Number(param.faixa_atencao || 0.85) ? "amarelo" : "vermelho";
+  const lucro = preco * (1 - Number(param.imposto || 0)) - custo;
+  const precoMin = custo * alvo;
+  return { qtd, n: ps.length, ajustes, pecas, cAjustes, gestao, fixo, realizado, previsto, nPend: pend.length, custo, preco, alvo, markup, faixa, lucro, precoMin };
+}
+const fmtX = (v) => (v == null ? "—" : v.toLocaleString("pt-BR", { maximumFractionDigits: 1, minimumFractionDigits: 1 }) + "x");
+function chipFin(c) {
+  const r = financeiro(c); if (!r) return "";
+  return `<span class="sin fin-${r.faixa}" title="${FAIXA[r.faixa]} · alvo ${fmtX(r.alvo)}">${r.faixa === "cinza" ? "Sem preço" : "Markup " + fmtX(r.markup)}</span>`;
+}
+function finTabela(lista) {
+  if (!param) return '<div class="vazio">Parâmetros de custo não encontrados.</div>';
+  const linhas = lista.map((c) => ({ c, r: financeiro(c) })).sort((a, b) => ({ vermelho: 0, amarelo: 1, cinza: 2, verde: 3 }[a.r.faixa] - { vermelho: 0, amarelo: 1, cinza: 2, verde: 3 }[b.r.faixa]));
+  return `<div class="finbox"><table class="fin"><thead><tr><th>Cliente</th><th>Situação</th><th class="n">Markup real</th><th class="n">Alvo</th><th class="n">Preço/mês</th><th class="n">Custo do mês</th><th class="n">Lucro líq.</th><th class="n">Preço mín. p/ alvo</th><th class="n">Peças · ajustes</th></tr></thead><tbody>
+    ${linhas.map(({ c, r }) => `<tr class="${r.faixa}"><td>${esc(c.nome)}</td><td><span class="sin fin-${r.faixa}">${FAIXA[r.faixa]}</span></td><td class="n">${fmtX(r.markup)}</td><td class="n">${fmtX(r.alvo)}</td><td class="n">${r.preco ? brl(r.preco) : "—"}</td><td class="n" title="Realizado ${brl(r.realizado)} + previsto ${brl(r.previsto)}">${brl(r.custo)}</td><td class="n">${r.preco ? brl(r.lucro) : "—"}</td><td class="n">${brl(r.precoMin)}</td><td class="n">${r.n}${r.nPend ? " +" + r.nPend : ""} · ${r.ajustes}</td></tr>`).join("") || '<tr><td colspan="9">Nenhum cliente.</td></tr>'}
+  </tbody></table></div>`;
+}
+function formCustos() {
+  const p = JSON.parse(JSON.stringify(param || {})); p.tipos = p.tipos || {};
+  const NOMES = { post_unico: "Post único", carrossel: "Carrossel", story: "Story", reels: "Reels por modelo", reels_avatar: "Reels com avatar" };
+  const campo = (id, rot, v, passo = "0.01") => `<label class="campo"><span>${rot}</span><input id="${id}" type="number" step="${passo}" value="${v ?? ""}"></label>`;
+  const m = modal(`<h3>Custos e markup</h3><p>Valem para todos os clientes. O custo do mês = peças produzidas + ajustes + gestão + custo fixo, mais as pautas ainda previstas no mês.</p>
+    <div class="grade2">${campo("pHora", "Hora da equipe (R$)", p.hora)}${campo("pImp", "Imposto (%)", Math.round((p.imposto || 0) * 1000) / 10, "0.1")}
+    ${campo("pFixo", "Custo fixo/cliente (R$)", p.fixo)}${campo("pGest", "Gestão/cliente (min/mês)", p.gestao_min, "1")}
+    ${campo("pAj", "Minutos por ajuste", p.minutos_ajuste, "1")}${campo("pMk", "Markup padrão", p.markup_padrao, "0.1")}
+    ${campo("pFx", "Atenção a partir de (% do alvo)", Math.round((p.faixa_atencao || 0.85) * 100), "1")}</div>
+    <h3 style="font-size:15px;margin:14px 0 6px">Por peça · custo de IA (R$) e minutos da equipe</h3>
+    ${Object.entries(NOMES).map(([k, n]) => `<div class="grade2" style="margin-bottom:6px">${campo("ia_" + k, n + " · IA", p.tipos[k]?.ia)}${campo("mi_" + k, n + " · min", p.tipos[k]?.min, "0.5")}</div>`).join("")}
+    <div class="acoes"><button class="btn" id="pCanc">Cancelar</button><button class="btn pri" id="pSalvar">Salvar</button></div>`);
+  $("#pCanc", m).onclick = () => m.remove();
+  $("#pSalvar", m).onclick = async (e) => {
+    const v = (id) => Number($("#" + id, m).value || 0);
+    const novo = { ...p, hora: v("pHora"), imposto: v("pImp") / 100, fixo: v("pFixo"), gestao_min: v("pGest"), minutos_ajuste: v("pAj"), markup_padrao: v("pMk"), faixa_atencao: v("pFx") / 100, tipos: {} };
+    Object.keys(NOMES).forEach((k) => (novo.tipos[k] = { ia: v("ia_" + k), min: v("mi_" + k) }));
+    e.target.disabled = true;
+    const { error } = await sb.from("lumen_custos_param").update({ params: novo, atualizado_em: new Date().toISOString() }).eq("id", 1);
+    e.target.disabled = false; if (error) return toast(error.message, true);
+    param = novo; m.remove(); toast("Custos atualizados"); render();
+  };
+}
+function finClienteHTML(c) {
+  const r = financeiro(c), f = fin[c.id] || {};
+  if (!r) return "";
+  const linha = (a, b) => `<tr><td>${a}</td><td class="n">${b}</td></tr>`;
+  const q = Object.entries(r.qtd).map(([t, n]) => `${n} ${TIPO[t] || t}`).join(" · ") || "nenhuma peça ainda";
+  return `<div class="post" style="margin-top:14px"><div class="corpo">
+    <h3>Financeiro do cliente <span class="sin fin-${r.faixa}" style="margin-left:6px;vertical-align:middle">${FAIXA[r.faixa]}${r.markup ? " · " + fmtX(r.markup) : ""}</span></h3>
+    <p style="color:var(--tx2);font-size:13px">Só a equipe vê. Mês atual: ${q}${r.nPend ? ` + ${r.nPend} pauta(s) prevista(s)` : ""}.</p>
+    <div class="grade" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px">
+      <label class="campo"><span>Preço mensal (R$)</span><input id="fPreco" type="number" step="1" value="${f.preco_mensal ?? ""}"></label>
+      <label class="campo"><span>Markup alvo (vazio = padrão ${fmtX(Number(param.markup_padrao))})</span><input id="fAlvo" type="number" step="0.1" value="${f.markup_alvo ?? ""}"></label>
+      <label class="campo" style="flex-direction:row;align-items:center;gap:8px;display:flex"><input id="fAvatar" type="checkbox" ${f.reels_avatar ? "checked" : ""} style="width:auto"><span>Reels com avatar (custo maior)</span></label>
+    </div>
+    <div class="finbox" style="margin-top:10px"><table class="fin"><tbody>
+      ${linha("Peças produzidas", brl(r.pecas))}${linha(`Ajustes (${r.ajustes})`, brl(r.cAjustes))}${linha("Gestão do cliente", brl(r.gestao))}${linha("Custo fixo", brl(r.fixo))}${linha("Pautas previstas no mês", brl(r.previsto))}
+      ${linha("<b>Custo do mês</b>", "<b>" + brl(r.custo) + "</b>")}${linha("Preço mínimo para o alvo", brl(r.precoMin))}${linha("Lucro líquido (após imposto)", r.preco ? brl(r.lucro) : "—")}
+    </tbody></table></div>
+    <div class="acoes"><button class="btn pri" id="fSalvar">Salvar financeiro</button></div>
+  </div></div>`;
+}
+function ligarFinCliente(c) {
+  const b = $("#fSalvar"); if (!b) return;
+  document.querySelectorAll("#fPreco,#fAlvo").forEach((e) => (e.style.cssText += ";width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:10px 12px"));
+  b.onclick = async () => {
+    b.disabled = true;
+    const row = { cliente_id: c.id, preco_mensal: $("#fPreco").value ? Number($("#fPreco").value) : null, markup_alvo: $("#fAlvo").value ? Number($("#fAlvo").value) : null, reels_avatar: $("#fAvatar").checked, atualizado_em: new Date().toISOString() };
+    const { error } = await sb.from("lumen_financeiro").upsert(row);
+    b.disabled = false; if (error) return toast(error.message, true);
+    fin[c.id] = row; toast("Financeiro salvo"); renderImplantacao();
+  };
 }
 
 // ---------- render ----------
@@ -290,6 +405,9 @@ function renderEquipe() {
       <div class="kpi"><b>${aguard}</b><span>posts aguardando aprovação</span></div>
       <div class="kpi"><b>${semana}</b><span>publicados nos últimos 7 dias</span></div>
     </div>
+    <div class="cab" style="margin-top:6px"><div><h2 style="font-size:18px">Saúde financeira · ${new Date().toLocaleDateString("pt-BR", { month: "long", year: "numeric", timeZone: "America/Sao_Paulo" })}</h2><p>Custo do mês (produzido + previsto) contra o preço, mantendo o markup alvo.</p></div><button class="btn" id="custos">⚙ Custos e markup</button></div>
+    ${finTabela(ativos)}
+    <div class="legfin"><span class="sin fin-verde">Saudável: no alvo ou acima</span><span class="sin fin-amarelo">Atenção: até ${Math.round((1 - (param?.faixa_atencao || 0.85)) * 100)}% abaixo do alvo</span><span class="sin fin-vermelho">Abaixo do markup</span><span class="sin">Sem preço cadastrado</span></div>
     <div class="filtros"><input id="buscaCli" placeholder="Buscar cliente…" value="${esc(q)}">
       <button class="aba ${filtroProb ? "on" : ""}" id="soProb">Só com problema <em>${comProb.length}</em></button></div>
     <div class="clis">${lista.map(cardCliente).join("") || '<div class="vazio">Nenhum cliente encontrado.</div>'}</div>
@@ -299,6 +417,7 @@ function renderEquipe() {
   if (foco) { const i = $("#buscaCli"); i.focus(); i.setSelectionRange(i.value.length, i.value.length); }
   $("#soProb").onclick = () => { filtroProb = !filtroProb; renderEquipe(); };
   $("#novoAcesso").onclick = formAcesso; carregarAcessos();
+  $("#custos").onclick = formCustos;
   $("#novoCliente").onclick = () => { modo = "novo"; history.replaceState(null, "", location.pathname); render(); };
   document.querySelectorAll(".cli").forEach((b) => (b.onclick = () => { atual = clientes.find((c) => String(c.id) === b.dataset.id); modo = "cliente"; aba = "aprovar"; $("#selCliente").value = String(atual.id); history.replaceState(null, "", "?cliente=" + atual.slug); render(); }));
 }
@@ -655,9 +774,11 @@ async function renderImplantacao() {
       <p style="color:var(--tx2);font-size:13px">${c.telegram_chat_id ? "Vinculado ✓ — o cliente recebe as prévias no @lumen_aprovacao_bot." : `Não vinculado. O cliente envia <b class="mono">/vincular ${esc(cod || "—")}</b> ao @lumen_aprovacao_bot.`}</p>
       <div class="acoes"><button class="btn" id="iNovoCod">Gerar novo código</button>${c.telegram_chat_id ? '<button class="btn er" id="iDesv">Desvincular Telegram</button>' : ""}</div>
     </div></div>
+    ${eu?.equipe ? finClienteHTML(c) : ""}
     ${c.slug !== "lumen" ? `<div class="post" style="margin-top:14px;border-color:rgba(239,68,68,.5)"><div class="corpo"><h3 style="color:#fca5a5">Excluir cliente</h3><p style="color:var(--tx2);font-size:13px">Apaga o cliente com as pautas, os posts e os acessos ao painel. Não dá para desfazer. O que já foi publicado no Instagram continua lá. Para só parar a produção, mude o status para <b>pausado</b>.</p><div class="acoes"><button class="btn er" id="iExcluir">Excluir ${esc(c.nome)}</button></div></div></div>` : ""}`;
   box.querySelectorAll(".campo input,.campo select").forEach((e) => (e.style.cssText += ";width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:10px 12px"));
   ligarDatas(box);
+  ligarFinCliente(c);
   $("#iSalvar").onclick = async (e) => {
     e.target.disabled = true;
     const { error: e0 } = await sb.rpc("lumen_atualizar_cliente", { p_cliente: atual.id, p_dados: { nome: $("#iNome").value, instagram: $("#iIg").value, pacote: $("#iPac").value, site: $("#iSite").value, cta: $("#iCta").value, botao: $("#iBot").value } });
@@ -741,6 +862,7 @@ function cardCliente(c) {
     <div><div class="n">${esc(c.nome)}<small>${esc(c.instagram || "")}</small></div>
       <div class="sinais">
         <span class="sin">${esc(c.pacote || "—")}</span>
+        ${chipFin(c)}
         <span class="sin ${c.status === "ativo" ? "ok" : "at"}">${esc(c.status)}</span>
         <span class="sin ${c.telegram_chat_id ? "ok" : "no"}">Telegram ${c.telegram_chat_id ? "✓" : "✗"}</span>
         <span class="sin ${c.ig_user_id ? "ok" : "no"}">Instagram ${c.ig_user_id ? "✓" : "✗"}</span>
