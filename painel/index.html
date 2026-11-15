@@ -398,7 +398,7 @@ function renderEquipe() {
   lista.sort((a, b) => problemas(b).length - problemas(a).length);
   const foco = document.activeElement?.id === "buscaCli";
   $("#conteudo").innerHTML = `
-    <div class="cab"><div><h2>Visão da equipe</h2><p>Todos os clientes da Lúmen, com alertas de erro em destaque.</p></div><button class="btn pri" id="novoCliente">+ Novo cliente</button></div>
+    <div class="cab"><div><h2>Visão da equipe</h2><p>Todos os clientes da Lúmen, com alertas de erro em destaque.</p></div><div style="display:flex;gap:8px;flex-wrap:wrap"><a class="btn" href="/demo/" target="_blank" rel="noopener" style="text-decoration:none">Demo comercial ↗</a><button class="btn pri" id="novoCliente">+ Novo cliente</button></div></div>
     <div class="kpis">
       <div class="kpi"><b>${ativos.length}</b><span>clientes ativos</span></div>
       <div class="kpi ${comProb.length ? "alerta" : ""}"><b>${comProb.length}</b><span>com problema</span></div>
