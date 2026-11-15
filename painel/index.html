@@ -123,6 +123,12 @@ main{max-width:1180px;margin:0 auto;padding:18px 16px 60px}
 .toast.on{opacity:1;transform:translateX(-50%)}
 .toast.ruim{background:#ef4444;color:#fff}
 .voltar{background:none;border:none;color:var(--tx2);font-size:13px;margin-bottom:8px;padding:0}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:40;display:grid;place-items:center;padding:16px}
+.modal>div{width:min(440px,100%);background:var(--bg2);border:1px solid var(--line);border-radius:18px;padding:22px;max-height:90vh;overflow:auto}
+.modal h3{font-size:18px;margin-bottom:4px}.modal p{color:var(--tx2);font-size:13px;margin-bottom:14px}
+.modal select,.modal input{width:100%;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;outline:none}
+.modal pre{white-space:pre-wrap;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;font-family:"JetBrains Mono",monospace;font-size:12.5px;margin-bottom:12px}
+.modal .acoes{margin-top:14px}
 </style>
 </head>
 <body>
@@ -283,12 +289,72 @@ function renderEquipe() {
     </div>
     <div class="filtros"><input id="buscaCli" placeholder="Buscar cliente…" value="${esc(q)}">
       <button class="aba ${filtroProb ? "on" : ""}" id="soProb">Só com problema <em>${comProb.length}</em></button></div>
-    <div class="clis">${lista.map(cardCliente).join("") || '<div class="vazio">Nenhum cliente encontrado.</div>'}</div>`;
+    <div class="clis">${lista.map(cardCliente).join("") || '<div class="vazio">Nenhum cliente encontrado.</div>'}</div>
+    <div class="cab" style="margin-top:30px"><div><h2 style="font-size:18px">Acessos ao painel</h2><p>Logins dos clientes e da equipe interna.</p></div><button class="btn pri" id="novoAcesso">+ Novo acesso</button></div>
+    <div id="acessos"><div class="vazio">Carregando…</div></div>`;
   $("#buscaCli").oninput = () => renderEquipe();
   if (foco) { const i = $("#buscaCli"); i.focus(); i.setSelectionRange(i.value.length, i.value.length); }
   $("#soProb").onclick = () => { filtroProb = !filtroProb; renderEquipe(); };
+  $("#novoAcesso").onclick = formAcesso; carregarAcessos();
   document.querySelectorAll(".cli").forEach((b) => (b.onclick = () => { atual = clientes.find((c) => String(c.id) === b.dataset.id); modo = "cliente"; aba = "aprovar"; $("#selCliente").value = String(atual.id); history.replaceState(null, "", "?cliente=" + atual.slug); render(); }));
 }
+// ---------- acessos (equipe) ----------
+async function carregarAcessos() {
+  const box = $("#acessos"); if (!box) return;
+  const { data, error } = await sb.from("lumen_acessos").select("*").order("papel").order("email");
+  if (!$("#acessos")) return;
+  if (error) { box.innerHTML = `<div class="vazio">${esc(error.message)}</div>`; return; }
+  const nomeCli = (id) => clientes.find((c) => c.id === id)?.nome || "—";
+  box.innerHTML = (data.length ? `<div class="clis">${data.map((a) => `<div class="cli" style="cursor:default"><div><div class="n">${esc(a.nome || a.email)}<small>${esc(a.email)}</small></div>
+      <div class="sinais"><span class="sin ${a.papel === "equipe" ? "ok" : ""}">${a.papel === "equipe" ? "Equipe · vê todos os clientes" : "Cliente · " + esc(nomeCli(a.cliente_id))}</span></div></div>
+      <div class="lado" style="flex-direction:row;align-items:center"><button class="btn" data-ac-senha="${esc(a.email)}">Nova senha</button><button class="btn er" data-ac-rem="${esc(a.email)}">Remover</button></div></div>`).join("")}</div>`
+    : '<div class="vazio">Nenhum acesso criado ainda.</div>') +
+    '<p style="color:var(--tx2);font-size:12px;margin-top:8px">Os administradores do escritório virtual da Evolue também entram como equipe.</p>';
+  box.querySelectorAll("[data-ac-senha]").forEach((b) => (b.onclick = async () => {
+    if (!confirm("Gerar uma nova senha provisória para " + b.dataset.acSenha + "? A senha antiga deixa de funcionar.")) return;
+    const r = await chamarAcesso({ acao: "nova_senha", email: b.dataset.acSenha }); if (r) mostrarCredencial(r.email, r.senha);
+  }));
+  box.querySelectorAll("[data-ac-rem]").forEach((b) => (b.onclick = async () => {
+    if (!confirm("Remover o acesso de " + b.dataset.acRem + " ao painel?")) return;
+    const r = await chamarAcesso({ acao: "remover", email: b.dataset.acRem }); if (r) { toast("Acesso removido"); carregarAcessos(); }
+  }));
+}
+async function chamarAcesso(corpo) {
+  const { data, error } = await sb.functions.invoke("lumen-acesso", { body: corpo });
+  if (error) { let m = error.message; try { m = (await error.context.json()).erro || m; } catch (e) {} toast(m, true); return null; }
+  if (data?.erro) { toast(data.erro, true); return null; }
+  return data;
+}
+function modal(html) {
+  const m = document.createElement("div"); m.className = "modal"; m.innerHTML = `<div>${html}</div>`;
+  m.onclick = (e) => { if (e.target === m) m.remove(); }; document.body.appendChild(m); return m;
+}
+function formAcesso() {
+  const m = modal(`<h3>Novo acesso</h3><p>Cria o login e gera uma senha provisória.</p>
+    <label class="campo"><span>Tipo</span><select id="acPapel"><option value="cliente">Cliente (vê só a própria empresa)</option><option value="equipe">Equipe interna (vê todos os clientes)</option></select></label>
+    <label class="campo" id="acCliBox"><span>Cliente</span><select id="acCli">${clientes.map((c) => `<option value="${c.id}">${esc(c.nome)}</option>`).join("")}</select></label>
+    <label class="campo"><span>Nome</span><input id="acNome" placeholder="Ex.: Maria (dona da loja)"></label>
+    <label class="campo"><span>E-mail</span><input id="acEmail" type="email" placeholder="email@empresa.com.br"></label>
+    <div class="acoes"><button class="btn" id="acCancelar">Cancelar</button><button class="btn pri" id="acCriar">Criar acesso</button></div>`);
+  $("#acPapel", m).onchange = () => ($("#acCliBox", m).hidden = $("#acPapel", m).value === "equipe");
+  $("#acCancelar", m).onclick = () => m.remove();
+  $("#acCriar", m).onclick = async (e) => {
+    const email = $("#acEmail", m).value.trim(); if (!email) return toast("Informe o e-mail", true);
+    e.target.disabled = true;
+    const r = await chamarAcesso({ acao: "criar", email, papel: $("#acPapel", m).value, cliente_id: Number($("#acCli", m).value), nome: $("#acNome", m).value.trim() || null });
+    e.target.disabled = false; if (!r) return;
+    m.remove(); carregarAcessos();
+    if (r.senha) mostrarCredencial(r.email, r.senha); else toast("Acesso liberado. O usuário já existia e entra com a senha que já usa.");
+  };
+}
+function mostrarCredencial(email, senha) {
+  const txt = `Seu acesso ao Painel Lúmen\nLink: https://sejalumen.com.br/painel/\nE-mail: ${email}\nSenha provisória: ${senha}\n\nDepois de entrar, troque a senha no ícone 🔑 no topo.`;
+  const m = modal(`<h3>Acesso pronto ✓</h3><p>Copie e envie para a pessoa. Esta senha não aparece de novo.</p><pre>${esc(txt)}</pre>
+    <div class="acoes"><button class="btn" id="crFechar">Fechar</button><button class="btn pri" id="crCopiar">Copiar mensagem</button></div>`);
+  $("#crFechar", m).onclick = () => m.remove();
+  $("#crCopiar", m).onclick = async () => { try { await navigator.clipboard.writeText(txt); toast("Copiado!"); } catch (e) { toast("Selecione o texto e copie manualmente", true); } };
+}
+
 function cardCliente(c) {
   const pr = problemas(c), ps = posts.filter((p) => p.cliente_id === c.id);
   const n = (s) => ps.filter((p) => p.status === s).length;
