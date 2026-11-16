@@ -609,7 +609,7 @@ function ligarSimulador() {
   };
 }
 // ---------- implantação (equipe) ----------
-const PACOTES = { start: "Start · 8 posts/mês", essencial: "Essencial · 12 posts + 8 stories", profissional: "Profissional · 16 posts + 4 Reels", premium: "Premium com vídeo · 20 posts + 8 Reels" };
+const PACOTES = { start: "Start · 4 carrosséis + 4 posts", essencial: "Essencial · 8 carrosséis + 4 posts + 8 stories", diario: "Diário · 12 carrosséis + 30 stories + 4 Reels", profissional: "Profissional · 12 carrosséis + 4 posts + 30 stories + 8 Reels" };
 let rascunho = null;
 async function chamarFn(nome, corpo) {
   const { data, error } = await sb.functions.invoke(nome, { body: corpo });
