@@ -206,7 +206,7 @@ main{max-width:1180px;margin:0 auto;padding:18px 16px 60px}
 .topo .in{max-width:none;padding:12px 24px}.topo .marca,.topo #selCliente,.topo .sair{display:none!important}
 #tituloTopo{font-size:16px;font-weight:800}
 #abreLat{display:none;background:none;border:1px solid var(--line);border-radius:10px;width:38px;height:38px;color:var(--tx);font-size:18px}
-main{max-width:1240px;padding:22px 28px 60px}
+main{max-width:1680px;margin:0;padding:22px 32px 60px}
 #conteudo>nav.abas,#conteudo>.voltar{display:none}
 #veu{display:none}
 @media(max-width:900px){
@@ -215,6 +215,46 @@ main{max-width:1240px;padding:22px 28px 60px}
   body.lat-on #lateral{transform:none}body.lat-on #veu{display:block;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:25}
   main{padding:16px 14px 60px}
 }
+
+#lateral .lmarca{display:flex;align-items:center;justify-content:space-between;gap:6px;min-height:62px}
+#recolher,#tema{background:none;border:1px solid var(--line);border-radius:9px;width:30px;height:30px;color:var(--tx2);font-size:15px;line-height:1;flex:none;display:grid;place-items:center}
+#recolher:hover,#tema:hover{color:var(--tx);border-color:var(--tx2)}
+#tema{margin-left:auto;width:34px;height:34px;font-size:16px}
+.topo .in{gap:12px}.topo .vivo{margin-left:6px}
+#lateral,#telaPainel{transition:width .18s,padding .18s}
+/* menu recolhido */
+@media(min-width:901px){
+  body.lat-mini{--lw:72px}
+  body.lat-mini #lateral .lmarca{flex-direction:column;justify-content:center;padding:12px 8px}
+  body.lat-mini #lateral .lmarca .marca>div,body.lat-mini #lateral .li span,body.lat-mini #lateral .li em,body.lat-mini #lateral .lt,body.lat-mini #lateral .lsub,body.lat-mini #lNovo span{display:none}
+  body.lat-mini #recolher{transform:rotate(180deg)}
+  body.lat-mini #lateral .lnav{padding:10px 8px;align-items:center}
+  body.lat-mini #lateral .li{justify-content:center;padding:10px 0;width:48px}
+  body.lat-mini #lateral .li i{width:auto;font-size:16px}
+  body.lat-mini #lateral .bola{margin:0}
+  body.lat-mini #lNovo{width:44px!important;height:44px;padding:0;font-size:20px}
+  body.lat-mini #lateral .lbaixo{align-items:center}
+}
+/* modo claro */
+body.claro{--bg:#F4F5F1;--bg2:#FFFFFF;--card:#FFFFFF;--card2:#EEF0EA;--line:#DDE1D6;--tx:#15171B;--tx2:#5E645A;--ac:#C8FF4D}
+body.claro .topo{background:rgba(255,255,255,.92)}
+body.claro #lateral .li.on{background:#EDF9D0;color:#3F5A00}
+body.claro #lateral .li em{color:#15171B}
+body.claro .aba.on,body.claro .btn.pri{color:#0B0C0E}
+body.claro .kpi.alerta b,body.claro .probs div{color:#C62828}
+body.claro a{color:#4D6B00}body.claro a.btn,body.claro .btn{color:var(--tx)}body.claro .btn.pri{color:#0B0C0E}body.claro #lateral a.li{color:var(--tx2)}
+body.claro .kpi.atencao b{color:#9A6700}
+body.claro .sin.ok,body.claro .sin.fin-verde{color:#1B7A35}
+body.claro .sin.no,body.claro .sin.fin-vermelho,body.claro #lateral .li em.al{color:#C62828}
+body.claro .sin.at,body.claro .sin.fin-amarelo{color:#9A6700}
+body.claro .res .preco{color:#4D6B00}
+body.claro .cols i{background:linear-gradient(#9BD600,#C8FF4D)}
+body.claro .post,body.claro .caixa,body.claro .kpi,body.claro .cli{box-shadow:0 1px 2px rgba(20,23,27,.05)}
+body.claro .s-aguardando{color:#8A6100}body.claro .s-aprovado{color:#1E4FBF}body.claro .s-ajustar{color:#B45309}body.claro .s-publicado{color:#1B7A35}body.claro .s-erro{color:#C62828}
+body.claro .obs{background:#F6F7F3}
+body.claro .modal>div{background:#fff}
+body.claro .toast{color:#0B0C0E}
+body.claro .login{background:#F4F5F1}
 .selo-novo{font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:1.5px;color:#0B0C0E;background:var(--ac);border-radius:999px;padding:3px 8px;margin-left:8px;vertical-align:middle}
 </style>
 </head>
@@ -233,9 +273,10 @@ main{max-width:1240px;padding:22px 28px 60px}
 </section>
 
 <section id="telaPainel" hidden>
-  <aside id="lateral"><div class="lmarca"><div class="marca"><svg viewBox="0 0 124 124"><rect x="2" y="2" width="120" height="120" rx="32" fill="#16181C" stroke="#2A2E35" stroke-width="3"/><circle cx="62" cy="62" r="13" fill="#C8FF4D"/><path d="M62 24V36M62 88V100M24 62H36M88 62H100M35 35L43 43M81 81L89 89M89 35L81 43M43 81L35 89" stroke="#C8FF4D" stroke-width="7" stroke-linecap="round"/></svg><div><b>lúmen<i>.</i></b><small id="papel">PAINEL</small></div></div><nav class="lnav"></nav></aside><div id="veu" onclick="document.body.classList.remove('lat-on')"></div>
+  <aside id="lateral"><div class="lmarca"><div class="marca"><svg viewBox="0 0 124 124"><rect x="2" y="2" width="120" height="120" rx="32" fill="#16181C" stroke="#2A2E35" stroke-width="3"/><circle cx="62" cy="62" r="13" fill="#C8FF4D"/><path d="M62 24V36M62 88V100M24 62H36M88 62H100M35 35L43 43M81 81L89 89M89 35L81 43M43 81L35 89" stroke="#C8FF4D" stroke-width="7" stroke-linecap="round"/></svg><div><b>lúmen<i>.</i></b><small id="papel">PAINEL</small></div></div><button id="recolher" title="Recolher menu" aria-label="Recolher menu">«</button></div><nav class="lnav"></nav></aside><div id="veu" onclick="document.body.classList.remove('lat-on')"></div>
   <header class="topo"><div class="in">
     <button id="abreLat" onclick="document.body.classList.toggle('lat-on')" aria-label="Menu">☰</button><b id="tituloTopo">Painel</b><span class="selo-novo">NOVA VERSÃO</span>
+    <button id="tema" title="Modo claro / escuro" aria-label="Alternar modo claro e escuro">☀</button>
     <div class="marca"><svg viewBox="0 0 124 124"><rect x="2" y="2" width="120" height="120" rx="32" fill="#16181C" stroke="#2A2E35" stroke-width="3"/><circle cx="62" cy="62" r="13" fill="#C8FF4D"/><path d="M62 24V36M62 88V100M24 62H36M88 62H100M35 35L43 43M81 81L89 89M89 35L81 43M43 81L35 89" stroke="#C8FF4D" stroke-width="7" stroke-linecap="round"/></svg><div><b>lúmen<i>.</i></b><small id="papel">PAINEL</small></div></div>
     <select id="selCliente" hidden aria-label="Cliente"></select>
     <span class="vivo" id="vivo"><i></i><span id="vivoTxt">conectando…</span></span>
@@ -1243,7 +1284,7 @@ function renderAprovacoes() {
 function montarLateral() {
   const el = $("#lateral"); if (!el || !eu) return;
   const g = eu.equipe ? grupos() : null;
-  const item = (on, ico, txt, attrs, n, cls = "") => `<button class="li ${on ? "on" : ""} ${cls}" ${attrs}><i>${ico}</i><span>${txt}</span>${n ? `<em class="${cls.includes("al") ? "al" : ""}">${n}</em>` : ""}</button>`;
+  const item = (on, ico, txt, attrs, n, cls = "") => `<button class="li ${on ? "on" : ""} ${cls}" title="${txt}" ${attrs}><i>${ico}</i><span>${txt}</span>${n ? `<em class="${cls.includes("al") ? "al" : ""}">${n}</em>` : ""}</button>`;
   let h = "";
   if (eu.equipe) {
     const eq = modo === "equipe";
@@ -1256,13 +1297,13 @@ function montarLateral() {
       ${item(eq && secao === "acessos", ICO.acessos, "Acessos", 'data-sec2="acessos"')}
       <div class="lt" style="margin-top:14px">Clientes</div>
       <div class="lcli">${clientes.map((c) => { const pr = problemas(c).length, fx = financeiro(c)?.faixa || "cinza", ab = modo === "cliente" && atual?.id === c.id;
-        return `<button class="li cli2 ${ab ? "on" : ""}" data-cli="${c.id}"><i class="bola f-${pr ? "vermelho" : fx}"></i><span>${esc(c.nome)}</span>${pr ? `<em class="al">${pr}</em>` : ""}</button>${ab ? subCliente() : ""}`; }).join("")}</div>`;
+        return `<button class="li cli2 ${ab ? "on" : ""}" title="${esc(c.nome)}" data-cli="${c.id}"><i class="bola f-${pr ? "vermelho" : fx}"></i><span>${esc(c.nome)}</span>${pr ? `<em class="al">${pr}</em>` : ""}</button>${ab ? subCliente() : ""}`; }).join("")}</div>`;
   } else {
     h += clientes.map((c) => `<div class="lt">${esc(c.nome)}</div>${modo === "cliente" && atual?.id === c.id ? subCliente() : `<button class="li" data-cli="${c.id}"><i>◉</i><span>Abrir</span></button>`}`).join("");
   }
-  h += `<div class="lbaixo">${eu.equipe ? `<button class="btn pri" id="lNovo" style="width:100%">+ Novo cliente</button><a class="li" href="/demo/" target="_blank" rel="noopener"><i>↗</i><span>Demo comercial</span></a>` : ""}
-    <button class="li" id="lSenha"><i>🔑</i><span>Trocar senha</span></button><button class="li" id="lSair"><i>⎋</i><span>Sair</span></button>
-    <a class="li" href="../" style="opacity:.7"><i>↩</i><span>Voltar ao painel atual</span></a></div>`;
+  h += `<div class="lbaixo">${eu.equipe ? `<button class="btn pri" id="lNovo" style="width:100%" title="Novo cliente">+<span> Novo cliente</span></button><a class="li" title="Demo comercial" href="/demo/" target="_blank" rel="noopener"><i>↗</i><span>Demo comercial</span></a>` : ""}
+    <button class="li" id="lSenha" title="Trocar senha"><i>🔑</i><span>Trocar senha</span></button><button class="li" id="lSair" title="Sair"><i>⎋</i><span>Sair</span></button>
+    <a class="li" title="Voltar ao painel atual" href="../" style="opacity:.7"><i>↩</i><span>Voltar ao painel atual</span></a></div>`;
   el.querySelector(".lnav").innerHTML = h;
   el.querySelectorAll("[data-sec2]").forEach((b) => (b.onclick = () => irEquipe(b.dataset.sec2)));
   el.querySelectorAll("[data-cli]").forEach((b) => (b.onclick = () => irCliente(Number(b.dataset.cli))));
@@ -1276,13 +1317,20 @@ function subCliente() {
   const pend = ps.filter((p) => p.status === "aguardando" || (eu.equipe && p.status === "erro")).length;
   const pub = ps.filter((p) => p.status === "publicado").length;
   const abas = [["aprovar", "Para aprovar", pend], ["agenda", "Agenda"], ["publicados", "Publicados", pub], ["arquivos", "Arquivos"]].concat(eu.equipe ? [["implantacao", "Gestão"]] : []);
-  return `<div class="lsub">${abas.map(([k, t, n]) => `<button class="li ${aba === k ? "on" : ""}" data-aba2="${k}"><i>${ICO[k]}</i><span>${t}</span>${n ? `<em>${n}</em>` : ""}</button>`).join("")}</div>`;
+  return `<div class="lsub">${abas.map(([k, t, n]) => `<button class="li ${aba === k ? "on" : ""}" title="${t}" data-aba2="${k}"><i>${ICO[k]}</i><span>${t}</span>${n ? `<em>${n}</em>` : ""}</button>`).join("")}</div>`;
 }
 const _renderOrig = render;
 render = function (s) {
   if (modo === "equipe" && secao === "aprovacoes") { renderAprovacoes(); montarLateral(); return; }
   _renderOrig(s); montarLateral();
 };
+
+// recolher menu e tema (lembra a escolha neste navegador)
+try { if (localStorage.getItem("lumen_lat_mini") === "1") document.body.classList.add("lat-mini"); if (localStorage.getItem("lumen_tema") === "claro") document.body.classList.add("claro"); } catch (e) {}
+const marcaTema = () => { const t = $("#tema"); if (t) t.textContent = document.body.classList.contains("claro") ? "☾" : "☀"; };
+marcaTema();
+$("#recolher").onclick = () => { const m = document.body.classList.toggle("lat-mini"); $("#recolher").title = m ? "Expandir menu" : "Recolher menu"; try { localStorage.setItem("lumen_lat_mini", m ? "1" : "0"); } catch (e) {} };
+$("#tema").onclick = () => { const c = document.body.classList.toggle("claro"); marcaTema(); try { localStorage.setItem("lumen_tema", c ? "claro" : "escuro"); } catch (e) {} };
 
 iniciar();
 </script>
