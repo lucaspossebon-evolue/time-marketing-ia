@@ -63,6 +63,45 @@ h2{font-size:clamp(24px,3.6vw,34px);font-weight:700;margin-bottom:10px}
 .faq p{color:var(--tx2);font-size:14px;margin-top:8px}
 footer{border-top:1px solid var(--line);padding:28px 0 100px;color:var(--tx2);font-size:13px}
 
+/* vitrine de exemplos */
+.hero .wrap{display:grid;grid-template-columns:minmax(0,1fr) 290px;gap:48px;align-items:center}
+@media(max-width:900px){.hero .wrap{grid-template-columns:1fr}.hero .herofone{max-width:250px;margin:10px auto 0}}
+.fone{position:relative;background:#000;border:8px solid #1d2026;border-radius:38px;overflow:hidden;box-shadow:0 30px 70px rgba(0,0,0,.55),0 0 0 1px #2A2E35}
+.fone::before{content:"";position:absolute;top:8px;left:50%;transform:translateX(-50%);width:34%;height:18px;background:#000;border-radius:0 0 12px 12px;z-index:2}
+.fone iframe{display:block;width:100%;height:100%;border:0;background:#000}
+.fone.f916{aspect-ratio:9/16}.fone.f919{aspect-ratio:9/19}.fone.f45{aspect-ratio:4/5;border-radius:22px}.fone.f45::before{display:none}
+.herofone{transform:rotate(2deg)}
+.herofone .selo{position:absolute;left:-26px;top:70px;z-index:3;background:var(--ac);color:var(--onac);font-weight:800;font-size:12.5px;border-radius:12px;padding:8px 12px;box-shadow:0 10px 30px rgba(0,0,0,.4);transform:rotate(-4deg)}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px}
+.chips button{background:var(--card);border:1px solid var(--line);color:var(--tx2);border-radius:999px;padding:8px 15px;font:600 13.5px Manrope,sans-serif;cursor:pointer}
+.chips button.on{background:var(--ac);border-color:var(--ac);color:var(--onac)}
+.vitrine{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px;align-items:start}
+.fone iframe.z{width:160%;height:160%;transform:scale(.625);transform-origin:0 0}
+.vitrine figure{margin:0}
+.vitrine figcaption{text-align:center;margin-top:12px;font-size:13.5px;color:var(--tx2)}
+.vitrine figcaption b{display:block;color:var(--tx);font-size:14.5px}
+@media(max-width:900px){.vitrine{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:16px;padding-bottom:10px;margin:0 -20px;padding-left:20px;padding-right:20px}.vitrine figure{flex:0 0 66%;scroll-snap-align:center}}
+.maisdemo{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-top:26px}
+.maisdemo span{font-size:12.5px;color:var(--tx2)}
+/* aprovação no celular */
+.aprova{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:40px;align-items:center;margin-top:34px}
+@media(max-width:900px){.aprova{grid-template-columns:1fr}.aprova .fone{max-width:280px;margin:0 auto}}
+.tg{background:#0e1621;height:100%;display:flex;flex-direction:column;font:13px -apple-system,"Segoe UI",Roboto,sans-serif;color:#e9edf1}
+.tg .tt{background:#17212b;padding:30px 14px 10px;display:flex;align-items:center;gap:10px;font-weight:700}
+.tg .tt i{width:30px;height:30px;border-radius:50%;background:var(--ac);display:grid;place-items:center;color:#0B0C0E;font-style:normal;font-size:13px}
+.tg .tt small{display:block;font-weight:400;color:#7f91a4;font-size:11px}
+.tg .msg{margin:12px 10px 0;background:#182533;border-radius:12px;overflow:hidden;max-width:92%}
+.tg .msg img{display:block;width:100%;aspect-ratio:1/1;object-fit:cover;background:#22303e}
+.tg .msg p{padding:8px 10px;line-height:1.4}
+.tg .bts{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin:4px 10px 0;max-width:92%}
+.tg .bts span{background:#2b5278;border-radius:8px;text-align:center;padding:7px 2px;font-size:12px;font-weight:600}
+.tg .ok{align-self:flex-end;margin:8px 10px 0;background:#2b5278;border-radius:12px 12px 2px 12px;padding:7px 11px;animation:aparece 6s infinite}
+@keyframes aparece{0%,45%{opacity:0;transform:translateY(6px)}55%,100%{opacity:1;transform:none}}
+.aprova ul{list-style:none;margin-top:8px}
+.aprova li{padding:10px 0 10px 30px;position:relative;color:var(--tx2);border-bottom:1px solid var(--line)}
+.aprova li b{color:var(--tx)}
+.aprova li::before{content:"✓";position:absolute;left:0;top:9px;width:20px;height:20px;border-radius:6px;background:rgba(200,255,77,.15);color:var(--ac);display:grid;place-items:center;font-size:12px;font-weight:800}
+
 /* chat */
 .fab{position:fixed;right:18px;bottom:18px;z-index:20}
 .fab .btn{padding:14px 20px}
@@ -102,6 +141,7 @@ footer{border-top:1px solid var(--line);padding:28px 0 100px;color:var(--tx2);fo
 </div></header>
 
 <div class="hero"><div class="wrap">
+  <div>
   <span class="tag">Fase piloto · vagas limitadas</span>
   <h1>Seu Instagram produzido toda semana por um <em>time de marketing</em> completo. Você só aprova pelo celular.</h1>
   <p class="lead">Pautas, carrosséis, stories todos os dias, datas do seu setor e Reels. Conteúdo com a cara da sua empresa, sem precisar montar uma equipe de marketing.</p>
@@ -110,7 +150,24 @@ footer{border-top:1px solid var(--line);padding:28px 0 100px;color:var(--tx2);fo
     <a class="btn sec" href="#pacotes">Ver pacotes</a>
   </div>
   <p class="prova">Time enxuto e tecnologia de ponta, já em operação real, produzindo conteúdo toda semana.</p>
+  </div>
+  <div class="herofone"><div class="fone f916"><iframe src="/demo/?embed=reel&amp;m=burger" title="Exemplo de Reels" loading="eager"></iframe></div><div class="selo">Exemplo de Reels ▶</div></div>
 </div></div>
+
+<section id="exemplos"><div class="wrap">
+  <h2>Veja como fica no Instagram</h2>
+  <p class="sub">Exemplos com marcas fictícias, no padrão que entregamos. Escolha um segmento e veja o perfil, os Reels, os stories e os carrosséis em movimento.</p>
+  <div class="chips" id="segs">
+    <button class="on" data-m="burger">Hamburgueria</button><button data-m="pet">Pet shop</button><button data-m="barba">Barbearia</button><button data-m="soft">Software house</button><button data-m="cosm">Cosméticos</button>
+  </div>
+  <div class="vitrine" id="vitrine">
+    <figure><div class="fone f919"><iframe class="z" data-e="perfil" src="/demo/?embed=perfil&amp;m=burger" title="Perfil no Instagram" loading="lazy"></iframe></div><figcaption><b>Perfil</b>Grid com identidade constante</figcaption></figure>
+    <figure><div class="fone f916"><iframe data-e="reel" src="/demo/?embed=reel&amp;m=burger" title="Reels" loading="lazy"></iframe></div><figcaption><b>Reels</b>Cenas, legenda e trilha</figcaption></figure>
+    <figure><div class="fone f916"><iframe data-e="story" src="/demo/?embed=story&amp;m=burger" title="Stories" loading="lazy"></iframe></div><figcaption><b>Stories</b>Todos os dias, no Diário e no Profissional</figcaption></figure>
+    <figure><div class="fone f45"><iframe data-e="carrossel" src="/demo/?embed=carrossel&amp;m=burger" title="Carrossel" loading="lazy"></iframe></div><figcaption><b>Carrossel</b>Conteúdo que gera salvamento</figcaption></figure>
+  </div>
+  <div class="maisdemo"><a class="btn sec" href="/demo/" target="_blank" rel="noopener">Ver o mês completo no calendário →</a><span>Marcas, fotos e números fictícios, só para demonstração.</span></div>
+</div></section>
 
 <section id="agentes"><div class="wrap">
   <h2>Um time completo, trabalhando todo dia</h2>
@@ -133,6 +190,16 @@ footer{border-top:1px solid var(--line);padding:28px 0 100px;color:var(--tx2);fo
     <div class="card"><h3>Produção semanal</h3><p>O time cria as peças e manda a prévia para você no celular.</p></div>
     <div class="card"><h3>Você aprova</h3><p>Aprovar, pedir ajuste ou reprovar leva poucos minutos por semana.</p></div>
     <div class="card"><h3>Publicação e relatório</h3><p>As peças aprovadas vão para o ar e, no fim do mês, você recebe os resultados.</p></div>
+  </div>
+  <div class="aprova">
+    <div><h3 style="font-size:22px">Aprovar leva segundos</h3>
+      <ul><li><b>Prévia no celular</b> um dia antes de ir ao ar, com arte e legenda.</li><li><b>Um toque</b> para aprovar, pedir ajuste ou reprovar.</li><li><b>Ajuste com uma frase</b>: “troque o título”, e o time refaz.</li><li><b>Painel web</b> com tudo o que foi aprovado, agendado e publicado.</li></ul></div>
+    <div class="fone f916"><div class="tg">
+      <div class="tt"><i>L</i><div>Lúmen · Aprovação<small>bot</small></div></div>
+      <div class="msg"><img src="https://wmfevnhfkgrwvernyqcf.supabase.co/storage/v1/object/public/marketing/lumen/demo/jpg/b_smash.jpg" alt="Prévia de post de hamburgueria" loading="lazy"><p><b>Post de amanhã, 18h30</b><br>Carrossel “Smash perfeito em 4 passos”. Legenda pronta.</p></div>
+      <div class="bts"><span>✓ Aprovar</span><span>✎ Ajustar</span><span>✕ Reprovar</span></div>
+      <div class="ok">✓ Aprovado</div>
+    </div></div>
   </div>
 </div></section>
 
@@ -184,6 +251,11 @@ footer{border-top:1px solid var(--line);padding:28px 0 100px;color:var(--tx2);fo
 </div>
 
 <script>
+document.querySelectorAll("#segs [data-m]").forEach((b) => (b.onclick = () => {
+  document.querySelectorAll("#segs [data-m]").forEach((x) => x.classList.toggle("on", x === b));
+  document.querySelectorAll("#vitrine iframe").forEach((f) => (f.src = `/demo/?embed=${f.dataset.e}&m=${b.dataset.m}`));
+}));
+
 const CONFIG = {
   endpoint: "https://wmfevnhfkgrwvernyqcf.supabase.co/functions/v1/vendedor-chat",
   boasVindas: "Oi! Eu sou a Lia, da Lúmen. 👋\nPosso te mostrar como o nosso time cuidaria do Instagram da sua empresa. Para começar: qual é o seu nome e o que a sua empresa faz?",
