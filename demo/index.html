@@ -640,7 +640,82 @@ function abrirDia(d){
 }
 
 $("#vCal").onclick=()=>{vista="cal";render();}; $("#vIg").onclick=()=>{vista="ig";render();};
+const _qm = new URLSearchParams(location.search).get("m"); if (MARCAS[_qm]) marca = _qm;
 render();
+/* ===== modo vitrine para o site: ?embed=perfil|reel|story|carrossel&m=burger ===== */
+(function(){
+  const q = new URLSearchParams(location.search), modo = q.get("embed"); if (!modo) return;
+  const m = MARCAS[marca], ps = agenda[marca];
+  document.body.className = "emb"; document.body.innerHTML = '<div id="emb"></div>';
+  const st = document.createElement("style");
+  st.textContent = `body.emb{background:#000;margin:0;overflow:hidden;height:100vh}
+  #emb{position:fixed;inset:0;overflow:hidden;background:#000;cursor:pointer}
+  #emb .ig{height:100vh;overflow:hidden}
+  #emb .pal{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+  #emb .pal>.arte{width:100%;max-height:100vh}
+  #emb .tr{display:flex;width:100%;transition:transform .5s ease}#emb .tr>.arte{flex:0 0 100%}
+  #emb .barras{position:absolute;top:8px;left:8px;right:8px;display:flex;gap:3px;z-index:3}
+  #emb .barras i{flex:1;height:2.5px;background:rgba(255,255,255,.35);border-radius:2px;overflow:hidden}
+  #emb .barras i b{display:block;height:100%;width:0;background:#fff}
+  #emb .uir{position:absolute;left:12px;right:56px;bottom:14px;color:#fff;font:13px -apple-system,"Segoe UI",Roboto,sans-serif;text-shadow:0 1px 3px rgba(0,0,0,.6);z-index:3}
+  #emb .uir b{display:flex;align-items:center;gap:8px;font-size:13.5px;margin-bottom:6px}
+  #emb .uir b img{width:26px;height:26px;border-radius:50%;object-fit:cover;border:1px solid #fff}
+  #emb .uir span{display:block;opacity:.9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #emb .ico{position:absolute;right:10px;bottom:18px;display:flex;flex-direction:column;gap:16px;align-items:center;color:#fff;font:600 11px sans-serif;z-index:3;text-shadow:0 1px 3px rgba(0,0,0,.6)}
+  #emb .ico i{font-style:normal;font-size:22px;display:block;text-align:center}
+  #emb .stt{position:absolute;top:18px;left:12px;display:flex;align-items:center;gap:8px;color:#fff;font:600 12.5px sans-serif;z-index:3;text-shadow:0 1px 3px rgba(0,0,0,.6)}
+  #emb .stt img{width:28px;height:28px;border-radius:50%;object-fit:cover}
+  #emb .pts{position:absolute;bottom:10px;left:0;right:0;display:flex;justify-content:center;gap:5px;z-index:3}
+  #emb .pts i{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.4)}#emb .pts i.on{background:#fff}`;
+  document.head.appendChild(st);
+  const box = $("#emb"), av = `<img src="${src(FOTOS[m.id].avatar)}" alt="">`;
+  box.onclick = () => window.open("/demo/?m=" + marca, "_blank");
+  if (modo === "perfil") {
+    const feed = ps.filter(p => p.tipo !== "story").sort((a, b) => b.dia - a.dia);
+    box.innerHTML = `<div class="ig" id="igr">
+      <div class="hdr"><b>${m.handle}</b><span>＋ ☰</span></div>
+      <div class="top"><div class="av"><div style="position:relative">${imgIn(FOTOS[m.id].avatar, "fotoav")}</div></div>
+        <div class="stats"><div><b>${feed.length + 87}</b>posts</div><div><b>${m.seguidores}</b>seguidores</div><div><b>${m.seguindo}</b>seguindo</div></div></div>
+      <div class="bio"><b>${m.nome}</b><span class="cat">${m.cat}</span><br>${m.bio.join("<br>")}<br><a href="#" onclick="return false">${m.link}</a></div>
+      <div class="btns"><div class="seg">Seguir</div><div>Mensagem</div><div>Contato</div></div>
+      <div class="dest">${m.destaques.map((d, i) => `<div><i><span style="position:relative;display:block">${imgIn(FOTOS[m.id].destaques[i], "fotoav")}</span></i>${d}</div>`).join("")}</div>
+      <div class="tabs"><div class="on">▦ Posts</div><div>▶ Reels</div><div>☺ Marcados</div></div>
+      <div class="grid">${feed.map(p => `<button class="gi">${capaDe(m, p)}<span class="tp">${p.tipo === "reels" ? "▶" : "❐"}</span></button>`).join("")}</div></div>`;
+    const ig = $("#igr"); let dir = 1, pausa = 120;
+    setInterval(() => { if (pausa > 0) { pausa--; return; } ig.scrollTop += dir * 0.6; if (ig.scrollTop + ig.clientHeight >= ig.scrollHeight - 1) { dir = -1; pausa = 90; } else if (ig.scrollTop <= 0 && dir < 0) { dir = 1; pausa = 120; } }, 16);
+  } else if (modo === "reel") {
+    const rs = ps.filter(p => p.tipo === "reels"); let k = 0;
+    const tocar = () => {
+      const p = rs[k % rs.length], dur = p.dados.cenas.length * 2200;
+      box.innerHTML = `<div class="pal">${arteReel(m, p.dados, false)}</div><div class="barras"><i><b id="rb"></b></i></div>
+        <div class="uir"><b>${av}${m.handle}</b><span>${p.titulo}</span><span>♫ ${m.trilha}</span></div>
+        <div class="ico"><div><i>♡</i>${(1 + (k * 7) % 9)},${(k * 3) % 9} mil</div><div><i>💬</i>${48 + k * 13}</div><div><i>➤</i></div></div>`;
+      const t0 = performance.now(), rb = $("#rb");
+      const iv = setInterval(() => { const f = (performance.now() - t0) / dur; rb.style.width = Math.min(100, f * 100) + "%"; if (f >= 1) { clearInterval(iv); k++; tocar(); } }, 60);
+    };
+    tocar();
+  } else if (modo === "story") {
+    const ss = ps.filter(p => p.tipo === "story").slice(0, 7); let k = 0;
+    const mostrar = () => {
+      const p = ss[k];
+      box.innerHTML = `<div class="pal">${arteStory(m, p.dados)}</div><div class="barras">${ss.map((_, j) => `<i><b style="width:${j < k ? 100 : 0}%"></b></i>`).join("")}</div>
+        <div class="stt">${av}${m.handle} <span style="opacity:.7;font-weight:400">${k + 2} h</span></div>`;
+      const b = box.querySelector(".barras").children[k].firstElementChild, t0 = performance.now();
+      const iv = setInterval(() => { const f = (performance.now() - t0) / 4500; b.style.width = Math.min(100, f * 100) + "%"; if (f >= 1) { clearInterval(iv); k = (k + 1) % ss.length; mostrar(); } }, 60);
+    };
+    mostrar();
+  } else if (modo === "carrossel") {
+    const cs = ps.filter(p => p.tipo === "carrossel"); let c = 0;
+    const mostrar = () => {
+      const p = cs[c % cs.length], sl = slidesDe(m, p); let i = 0;
+      box.innerHTML = `<div class="pal" style="overflow:hidden"><div class="tr" id="tr">${sl.map((s, j) => arteSlide(m, s, j, sl.length)).join("")}</div></div><div class="pts">${sl.map(() => "<i></i>").join("")}</div>`;
+      const ir = () => { $("#tr").style.transform = `translateX(-${i * 100}%)`; box.querySelectorAll(".pts i").forEach((d, j) => d.classList.toggle("on", j === i)); };
+      ir();
+      const iv = setInterval(() => { i++; if (i >= sl.length) { clearInterval(iv); c++; mostrar(); return; } ir(); }, 2600);
+    };
+    mostrar();
+  }
+})();
 </script>
 </body>
 </html>
