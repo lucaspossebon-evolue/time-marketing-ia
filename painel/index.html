@@ -142,6 +142,44 @@ main{max-width:1180px;margin:0 auto;padding:18px 16px 60px}
 .finbox{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow-x:auto;margin-bottom:8px}
 .legfin{display:flex;gap:6px;flex-wrap:wrap;font-size:12px;color:var(--tx2);margin:8px 0 22px}
 .modal .grade2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+/* visão geral da equipe */
+.sec{font-size:11px;letter-spacing:1.8px;text-transform:uppercase;color:var(--tx2);font-family:"JetBrains Mono",monospace;font-weight:500;margin:4px 0 8px}
+.kpis.k5{grid-template-columns:repeat(5,1fr)}@media(max-width:900px){.kpis.k5{grid-template-columns:repeat(3,1fr)}}@media(max-width:560px){.kpis.k5{grid-template-columns:repeat(2,1fr)}}
+.kpi.kb{text-align:left;cursor:pointer;transition:.15s;position:relative}.kpi.kb:hover{border-color:var(--ac);transform:translateY(-1px)}
+.kpi.kb::after{content:"›";position:absolute;right:12px;top:12px;color:var(--tx2);font-size:16px}
+@media(max-width:560px){.kpi.din b{font-size:18px}}
+.kpi.atencao{border-color:rgba(234,179,8,.5)}.kpi.atencao b{color:#fde047}
+.painel2{display:grid;grid-template-columns:1.2fr 1fr;gap:12px;margin-top:6px}@media(max-width:860px){.painel2{grid-template-columns:1fr}}
+.caixa{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px}
+.caixa h3{font-size:15px;margin-bottom:10px}
+.acao{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:6px;font-size:13px}
+.acao i{margin-left:auto;font-style:normal;color:var(--tx2)}.acao:hover{border-color:var(--ac)}
+.acao.er{border-left:3px solid var(--er)}.acao.wa{border-left:3px solid var(--wa)}
+.barra{display:flex;height:14px;border-radius:999px;overflow:hidden;background:var(--bg2);gap:2px}
+.barra i{display:block}.b-verde{background:var(--ok)}.b-amarelo{background:var(--wa)}.b-vermelho{background:var(--er)}.b-cinza{background:#64748b}
+.legfin button.sin{background:none;cursor:pointer}
+.cols{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;height:130px;align-items:end}
+.cols div{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:4px}
+.cols i{display:block;width:100%;max-width:34px;background:linear-gradient(var(--ac),rgba(200,255,77,.35));border-radius:8px 8px 3px 3px;min-height:3px}
+.cols b{font-size:12px}.cols span{font-size:11px;color:var(--tx2)}
+.qlista{display:flex;flex-direction:column;gap:6px;max-height:60vh;overflow:auto}
+.qi{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.qi img,.qi .ph{width:40px;height:50px;object-fit:cover;border-radius:8px;flex:none;background:#000;display:grid;place-items:center;color:var(--tx2)}
+.qt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.qt b{font-size:13.5px}.qt span{font-size:12px;color:var(--tx2)}
+.qa{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}.qa .btn{padding:7px 12px;font-size:12px}
+.fin tr[data-cid]:hover td{background:var(--card2)}
+/* simulador */
+.simg{display:grid;grid-template-columns:1.1fr 1fr;gap:12px}@media(max-width:860px){.simg{grid-template-columns:1fr}}
+.stp{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.stp b{display:block;font-size:14px}.stp span{font-size:12px;color:var(--tx2)}
+.ctl{display:flex;align-items:center;gap:6px}.ctl button{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:var(--card2);font-size:18px}
+.ctl input{width:64px;text-align:center;background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:7px 4px;font-weight:700}
+.caixa .campo input,.caixa select{width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;outline:none}
+.res .rot{font-size:12px;color:var(--tx2)}.res .preco{font-size:38px;font-weight:800;letter-spacing:-1px;color:var(--ac);line-height:1.1}.res .preco small{font-size:14px;color:var(--tx2);font-weight:600;margin-left:4px}
+.res p{color:var(--tx2);font-size:12.5px;margin:4px 0 10px}
+.caixa .grade2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+/* números do cliente */
+.kpis.kc{grid-template-columns:repeat(auto-fit,minmax(130px,1fr))}
 .modal .grade2 label span,.modal label.campo span{font-size:12px;color:var(--tx2)}
 </style>
 </head>
@@ -321,7 +359,7 @@ function finTabela(lista) {
   if (!param) return '<div class="vazio">Parâmetros de custo não encontrados.</div>';
   const linhas = lista.map((c) => ({ c, r: financeiro(c) })).sort((a, b) => ({ vermelho: 0, amarelo: 1, cinza: 2, verde: 3 }[a.r.faixa] - { vermelho: 0, amarelo: 1, cinza: 2, verde: 3 }[b.r.faixa]));
   return `<div class="finbox"><table class="fin"><thead><tr><th>Cliente</th><th>Situação</th><th class="n">Markup real</th><th class="n">Alvo</th><th class="n">Preço/mês</th><th class="n">Custo do mês</th><th class="n">Lucro líq.</th><th class="n">Preço mín. p/ alvo</th><th class="n">Peças · ajustes</th></tr></thead><tbody>
-    ${linhas.map(({ c, r }) => `<tr class="${r.faixa}"><td>${esc(c.nome)}</td><td><span class="sin fin-${r.faixa}">${FAIXA[r.faixa]}</span></td><td class="n">${fmtX(r.markup)}</td><td class="n">${fmtX(r.alvo)}</td><td class="n">${r.preco ? brl(r.preco) : "—"}</td><td class="n" title="Realizado ${brl(r.realizado)} + previsto ${brl(r.previsto)}">${brl(r.custo)}</td><td class="n">${r.preco ? brl(r.lucro) : "—"}</td><td class="n">${brl(r.precoMin)}</td><td class="n">${r.n}${r.nPend ? " +" + r.nPend : ""} · ${r.ajustes}</td></tr>`).join("") || '<tr><td colspan="9">Nenhum cliente.</td></tr>'}
+    ${linhas.map(({ c, r }) => `<tr class="${r.faixa}" data-cid="${c.id}" style="cursor:pointer"><td>${esc(c.nome)}</td><td><span class="sin fin-${r.faixa}">${FAIXA[r.faixa]}</span></td><td class="n">${fmtX(r.markup)}</td><td class="n">${fmtX(r.alvo)}</td><td class="n">${r.preco ? brl(r.preco) : "—"}</td><td class="n" title="Realizado ${brl(r.realizado)} + previsto ${brl(r.previsto)}">${brl(r.custo)}</td><td class="n">${r.preco ? brl(r.lucro) : "—"}</td><td class="n">${brl(r.precoMin)}</td><td class="n">${r.n}${r.nPend ? " +" + r.nPend : ""} · ${r.ajustes}</td></tr>`).join("") || '<tr><td colspan="9">Nenhum cliente.</td></tr>'}
   </tbody></table></div>`;
 }
 function formCustos() {
@@ -387,39 +425,188 @@ function render(silencioso) {
   renderCliente(silencioso);
 }
 
-function renderEquipe() {
+// ---------- equipe: visão geral, clientes, financeiro, simulador, acessos ----------
+let secao = "geral", filtroCli = "todos";
+const abrirCliente = (id, abaIni = "aprovar") => { document.querySelector(".modal")?.remove(); atual = clientes.find((c) => c.id === id); modo = "cliente"; aba = abaIni; $("#selCliente").value = String(atual.id); history.replaceState(null, "", "?cliente=" + atual.slug); render(); window.scrollTo(0, 0); };
+function grupos() {
   const ativos = clientes.filter((c) => ["ativo", "implantacao"].includes(c.status));
-  const comProb = clientes.filter((c) => problemas(c).length);
-  const aguard = posts.filter((p) => p.status === "aguardando").length;
-  const semana = posts.filter((p) => p.status === "publicado" && Date.now() - new Date(p.publicado_em) < 7 * 864e5).length;
-  const q = ($("#buscaCli")?.value || "").toLowerCase();
-  let lista = clientes.filter((c) => !q || (c.nome + " " + c.instagram + " " + c.slug).toLowerCase().includes(q));
-  if (filtroProb) lista = lista.filter((c) => problemas(c).length);
-  lista.sort((a, b) => problemas(b).length - problemas(a).length);
+  const fx = (f) => ativos.filter((c) => financeiro(c)?.faixa === f);
+  const pst = (s) => posts.filter((p) => p.status === s);
+  const atras = posts.filter((p) => p.status === "aprovado" && new Date(p.data_publicacao) < Date.now() - 1.5 * H);
+  const fins = ativos.map((c) => financeiro(c)).filter(Boolean);
+  return { ativos, comProb: clientes.filter((c) => problemas(c).length), verm: fx("vermelho"), amar: fx("amarelo"), semPreco: fx("cinza"), verde: fx("verde"),
+    aguard: pst("aguardando"), ajuste: pst("ajustar"), erro: pst("erro"), atras,
+    pub7: posts.filter((p) => p.status === "publicado" && Date.now() - new Date(p.publicado_em) < 7 * 864e5),
+    receita: fins.reduce((s, r) => s + r.preco, 0), lucro: fins.filter((r) => r.preco).reduce((s, r) => s + r.lucro, 0), custo: fins.reduce((s, r) => s + r.custo, 0) };
+}
+const nomeCli = (id) => clientes.find((c) => c.id === id)?.nome || "—";
+function listaClientes(titulo, sub, lista, extra) {
+  const m = modal(`<h3>${titulo}</h3><p>${sub}</p>${lista.length ? `<div class="qlista">${lista.map((c) => { const r = financeiro(c), pr = problemas(c);
+    return `<div class="qi"><div class="qt"><b>${esc(c.nome)}</b><span>${extra ? extra(c, r, pr) : esc(c.instagram || "")}</span></div>
+      <div class="qa"><button class="btn" data-ir="${c.id}" data-aba="aprovar">Abrir</button><button class="btn" data-ir="${c.id}" data-aba="implantacao">Gestão</button></div></div>`; }).join("")}</div>` : '<div class="vazio">Nenhum cliente aqui. 🎉</div>'}
+    <div class="acoes"><button class="btn" data-fechar>Fechar</button></div>`);
+  ligarModal(m);
+}
+function listaPosts(titulo, sub, lista) {
+  const m = modal(`<h3>${titulo}</h3><p>${sub}</p>${lista.length ? `<div class="qlista">${lista.slice().sort((a, b) => new Date(a.data_publicacao) - new Date(b.data_publicacao)).map((p) => `<div class="qi">
+      ${p.capa_url || p.midias?.[0] ? `<img src="${esc(p.capa_url || p.midias[0])}" alt="" loading="lazy">` : '<div class="ph">▶</div>'}
+      <div class="qt"><b>${esc(nomeCli(p.cliente_id))} · #${p.numero}</b><span>${esc(p.tema || "")} · ${TIPO[p.tipo] || p.tipo} · ${dataBR(p.data_publicacao)}</span>${p.obs ? `<span style="color:#fdba74">${esc(p.obs)}</span>` : ""}</div>
+      <div class="qa">${p.status === "erro" ? `<button class="btn pri" data-retry="${p.id}">↻ Publicar de novo</button>` : ""}<button class="btn" data-ir="${p.cliente_id}" data-aba="aprovar">Abrir</button></div></div>`).join("")}</div>` : '<div class="vazio">Nada por aqui. 🎉</div>'}
+    <div class="acoes"><button class="btn" data-fechar>Fechar</button></div>`);
+  ligarModal(m);
+}
+function ligarModal(m) {
+  m.firstElementChild.style.width = "min(640px,100%)";
+  m.querySelectorAll("[data-ir]").forEach((b) => (b.onclick = () => abrirCliente(Number(b.dataset.ir), b.dataset.aba)));
+  m.querySelectorAll("[data-fechar]").forEach((b) => (b.onclick = () => m.remove()));
+  m.querySelectorAll("[data-retry]").forEach((b) => (b.onclick = async () => { await decidir(Number(b.dataset.retry), "tentar_novamente", null, b); b.closest(".qi").remove(); }));
+}
+const ACOES = {
+  ativos: (g) => listaClientes("Clientes ativos", "Ativos e em implantação.", g.ativos, (c) => `${esc(c.pacote || "—")} · ${esc(c.status)}`),
+  prob: (g) => listaClientes("Clientes com problema", "O que está travando cada um. Abra para resolver.", g.comProb, (c, r, pr) => pr.map((x) => "⚠ " + esc(x)).join("<br>")),
+  verm: (g) => listaClientes("Abaixo do markup", "Preço não cobre o custo do mês com o markup alvo.", g.verm, (c, r) => `Markup ${fmtX(r.markup)} · preço ${brl(r.preco)} · mínimo p/ alvo <b>${brl(r.precoMin)}</b>`),
+  amar: (g) => listaClientes("Atenção no markup", "Perto do limite. Vale olhar ajustes e volume.", g.amar, (c, r) => `Markup ${fmtX(r.markup)} · alvo ${fmtX(r.alvo)} · ${r.ajustes} ajustes no mês`),
+  sem: (g) => listaClientes("Sem preço cadastrado", "Cadastre o preço na Gestão para entrar no financeiro.", g.semPreco, (c, r) => `Custo do mês ${brl(r.custo)} · sugerido ${brl(r.precoMin)}`),
+  aguard: (g) => listaPosts("Aguardando aprovação do cliente", "Posts parados esperando o cliente. Cobre quem está perto da data.", g.aguard),
+  ajuste: (g) => listaPosts("Em ajuste", "Pedidos de ajuste que o time precisa refazer.", g.ajuste),
+  erro: (g) => listaPosts("Erros de publicação", "Tente publicar de novo ou abra o cliente para ver o detalhe.", g.erro),
+  atras: (g) => listaPosts("Aprovados e atrasados", "Já deviam ter ido ao ar.", g.atras),
+  pub7: (g) => listaPosts("Publicados nos últimos 7 dias", "", g.pub7),
+};
+function kpiBtn(k, n, rot, cls = "") { return `<button class="kpi kb ${cls}" data-k="${k}"><b>${n}</b><span>${rot}</span></button>`; }
+function renderEquipe() {
+  const g = grupos();
+  const abas = [["geral", "Visão geral"], ["clientes", "Clientes", clientes.length], ["financeiro", "Financeiro", g.verm.length], ["simulador", "Simulador de pacotes"], ["acessos", "Acessos"]];
+  let corpo = "";
+  if (secao === "geral") {
+    const dias = [...Array(7)].map((_, i) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() + i); return d; });
+    const porDia = dias.map((d) => posts.filter((p) => ["aguardando", "aprovado", "publicado"].includes(p.status) && new Date(p.data_publicacao).toDateString() === d.toDateString()).length);
+    const mx = Math.max(1, ...porDia), tot = g.ativos.length || 1;
+    const acao = [...g.erro.map((p) => ({ t: "er", h: `Erro ao publicar #${p.numero} de ${esc(nomeCli(p.cliente_id))}`, id: p.cliente_id })),
+      ...g.verm.map((c) => ({ t: "er", h: `${esc(c.nome)} abaixo do markup: preço mínimo ${brl(financeiro(c).precoMin)}`, id: c.id, a: "implantacao" })),
+      ...g.comProb.flatMap((c) => problemas(c).filter((x) => !/erro na publicação/.test(x)).slice(0, 2).map((x) => ({ t: "wa", h: `${esc(c.nome)}: ${esc(x)}`, id: c.id }))),
+      ...g.aguard.filter((p) => new Date(p.data_publicacao) - Date.now() < 24 * H).map((p) => ({ t: "wa", h: `${esc(nomeCli(p.cliente_id))} ainda não aprovou #${p.numero} (vai ao ar ${dataBR(p.data_publicacao)})`, id: p.cliente_id }))].slice(0, 8);
+    corpo = `
+      <h4 class="sec">Operação</h4><div class="kpis k5">
+        ${kpiBtn("ativos", g.ativos.length, "clientes ativos")}${kpiBtn("prob", g.comProb.length, "com problema", g.comProb.length ? "alerta" : "")}
+        ${kpiBtn("erro", g.erro.length, "erros de publicação", g.erro.length ? "alerta" : "")}${kpiBtn("atras", g.atras.length, "aprovados e atrasados", g.atras.length ? "alerta" : "")}${kpiBtn("pub7", g.pub7.length, "publicados em 7 dias")}</div>
+      <h4 class="sec">Aprovação</h4><div class="kpis k5">
+        ${kpiBtn("aguard", g.aguard.length, "aguardando o cliente", g.aguard.length ? "atencao" : "")}${kpiBtn("ajuste", g.ajuste.length, "em ajuste pelo time", g.ajuste.length ? "atencao" : "")}</div>
+      <h4 class="sec">Financeiro do mês</h4><div class="kpis k5">
+        <button class="kpi kb din" data-sec="financeiro"><b>${brl(g.receita)}</b><span>receita mensal</span></button>
+        <button class="kpi kb din" data-sec="financeiro"><b>${brl(g.lucro)}</b><span>lucro líquido previsto</span></button>
+        ${kpiBtn("verm", g.verm.length, "abaixo do markup", g.verm.length ? "alerta" : "")}${kpiBtn("amar", g.amar.length, "em atenção", g.amar.length ? "atencao" : "")}${kpiBtn("sem", g.semPreco.length, "sem preço")}</div>
+      <div class="painel2">
+        <div class="caixa"><h3>Precisa de ação agora</h3>${acao.length ? acao.map((a) => `<button class="acao ${a.t}" data-ir="${a.id}" data-aba="${a.a || "aprovar"}">${a.h}<i>›</i></button>`).join("") : '<div class="vazio" style="padding:22px">Tudo em dia. 🎉</div>'}</div>
+        <div class="caixa"><h3>Saúde financeira da carteira</h3>
+          <div class="barra">${[["verde", g.verde], ["amarelo", g.amar], ["vermelho", g.verm], ["cinza", g.semPreco]].map(([f, l]) => l.length ? `<i class="b-${f}" style="flex:${l.length}" title="${FAIXA[f]}: ${l.length}"></i>` : "").join("")}</div>
+          <div class="legfin" style="margin:8px 0 16px">${[["verde", g.verde, ""], ["amarelo", g.amar, "amar"], ["vermelho", g.verm, "verm"], ["cinza", g.semPreco, "sem"]].map(([f, l, k]) => `<button class="sin fin-${f}" ${k ? `data-k="${k}"` : 'data-sec="financeiro"'}>${FAIXA[f]}: ${l.length}</button>`).join("")}</div>
+          <h3>Publicações nos próximos 7 dias</h3>
+          <div class="cols">${porDia.map((n, i) => `<div><i style="height:${Math.round(n / mx * 100)}%"></i><b>${n}</b><span>${dias[i].toLocaleDateString("pt-BR", { weekday: "short" }).replace(".", "")}</span></div>`).join("")}</div>
+        </div></div>`;
+  } else if (secao === "clientes") {
+    const q = ($("#buscaCli")?.value || "").toLowerCase();
+    const F = { todos: ["Todos", () => true], prob: ["Com problema", (c) => problemas(c).length], verm: ["Abaixo do markup", (c) => financeiro(c)?.faixa === "vermelho"], amar: ["Atenção", (c) => financeiro(c)?.faixa === "amarelo"], aguard: ["Aguardando aprovação", (c) => posts.some((p) => p.cliente_id === c.id && p.status === "aguardando")], implantacao: ["Em implantação", (c) => c.status === "implantacao"] };
+    const lista = clientes.filter((c) => (!q || (c.nome + " " + c.instagram + " " + c.slug).toLowerCase().includes(q)) && F[filtroCli][1](c)).sort((a, b) => problemas(b).length - problemas(a).length);
+    corpo = `<div class="filtros"><input id="buscaCli" placeholder="Buscar cliente…" value="${esc(q)}"></div>
+      <div class="abas" style="margin-bottom:12px">${Object.entries(F).map(([k, [t, f]]) => `<button class="aba ${filtroCli === k ? "on" : ""}" data-fc="${k}">${t}<em>${clientes.filter(f).length}</em></button>`).join("")}</div>
+      <div class="clis">${lista.map(cardCliente).join("") || '<div class="vazio">Nenhum cliente nesse filtro.</div>'}</div>`;
+  } else if (secao === "financeiro") {
+    corpo = `<div class="cab"><div><h2 style="font-size:18px">Saúde financeira · ${new Date().toLocaleDateString("pt-BR", { month: "long", year: "numeric", timeZone: "America/Sao_Paulo" })}</h2><p>Custo do mês (produzido + previsto) contra o preço, mantendo o markup alvo. Clique numa linha para abrir a gestão do cliente.</p></div><button class="btn" id="custos">⚙ Custos e markup</button></div>
+      ${finTabela(g.ativos)}
+      <div class="legfin"><span class="sin fin-verde">Saudável: no alvo ou acima</span><span class="sin fin-amarelo">Atenção: até ${Math.round((1 - (param?.faixa_atencao || 0.85)) * 100)}% abaixo do alvo</span><span class="sin fin-vermelho">Abaixo do markup</span><span class="sin">Sem preço cadastrado</span></div>`;
+  } else if (secao === "simulador") corpo = simuladorHTML();
+  else corpo = `<div class="cab"><div><h2 style="font-size:18px">Acessos ao painel</h2><p>Logins dos clientes e da equipe interna.</p></div><button class="btn pri" id="novoAcesso">+ Novo acesso</button></div><div id="acessos"><div class="vazio">Carregando…</div></div>`;
   const foco = document.activeElement?.id === "buscaCli";
   $("#conteudo").innerHTML = `
-    <div class="cab"><div><h2>Visão da equipe</h2><p>Todos os clientes da Lúmen, com alertas de erro em destaque.</p></div><div style="display:flex;gap:8px;flex-wrap:wrap"><a class="btn" href="/demo/" target="_blank" rel="noopener" style="text-decoration:none">Demo comercial ↗</a><button class="btn pri" id="novoCliente">+ Novo cliente</button></div></div>
-    <div class="kpis">
-      <div class="kpi"><b>${ativos.length}</b><span>clientes ativos</span></div>
-      <div class="kpi ${comProb.length ? "alerta" : ""}"><b>${comProb.length}</b><span>com problema</span></div>
-      <div class="kpi"><b>${aguard}</b><span>posts aguardando aprovação</span></div>
-      <div class="kpi"><b>${semana}</b><span>publicados nos últimos 7 dias</span></div>
-    </div>
-    <div class="cab" style="margin-top:6px"><div><h2 style="font-size:18px">Saúde financeira · ${new Date().toLocaleDateString("pt-BR", { month: "long", year: "numeric", timeZone: "America/Sao_Paulo" })}</h2><p>Custo do mês (produzido + previsto) contra o preço, mantendo o markup alvo.</p></div><button class="btn" id="custos">⚙ Custos e markup</button></div>
-    ${finTabela(ativos)}
-    <div class="legfin"><span class="sin fin-verde">Saudável: no alvo ou acima</span><span class="sin fin-amarelo">Atenção: até ${Math.round((1 - (param?.faixa_atencao || 0.85)) * 100)}% abaixo do alvo</span><span class="sin fin-vermelho">Abaixo do markup</span><span class="sin">Sem preço cadastrado</span></div>
-    <div class="filtros"><input id="buscaCli" placeholder="Buscar cliente…" value="${esc(q)}">
-      <button class="aba ${filtroProb ? "on" : ""}" id="soProb">Só com problema <em>${comProb.length}</em></button></div>
-    <div class="clis">${lista.map(cardCliente).join("") || '<div class="vazio">Nenhum cliente encontrado.</div>'}</div>
-    <div class="cab" style="margin-top:30px"><div><h2 style="font-size:18px">Acessos ao painel</h2><p>Logins dos clientes e da equipe interna.</p></div><button class="btn pri" id="novoAcesso">+ Novo acesso</button></div>
-    <div id="acessos"><div class="vazio">Carregando…</div></div>`;
-  $("#buscaCli").oninput = () => renderEquipe();
-  if (foco) { const i = $("#buscaCli"); i.focus(); i.setSelectionRange(i.value.length, i.value.length); }
-  $("#soProb").onclick = () => { filtroProb = !filtroProb; renderEquipe(); };
-  $("#novoAcesso").onclick = formAcesso; carregarAcessos();
-  $("#custos").onclick = formCustos;
+    <div class="cab"><div><h2>Visão da equipe</h2><p>${g.ativos.length} clientes ativos · ${g.comProb.length ? `<span style="color:#fca5a5">${g.comProb.length} com problema</span>` : "nenhum problema"} · toque nos números para agir.</p></div><div style="display:flex;gap:8px;flex-wrap:wrap"><a class="btn" href="/demo/" target="_blank" rel="noopener" style="text-decoration:none">Demo comercial ↗</a><button class="btn pri" id="novoCliente">+ Novo cliente</button></div></div>
+    <nav class="abas">${abas.map(([k, t, n]) => `<button class="aba ${secao === k ? "on" : ""}" data-secao="${k}">${t}${n ? `<em>${n}</em>` : ""}</button>`).join("")}</nav>${corpo}`;
+  document.querySelectorAll("[data-secao]").forEach((b) => (b.onclick = () => { secao = b.dataset.secao; renderEquipe(); }));
+  document.querySelectorAll("[data-sec]").forEach((b) => (b.onclick = () => { secao = b.dataset.sec; renderEquipe(); }));
+  document.querySelectorAll("[data-k]").forEach((b) => (b.onclick = () => ACOES[b.dataset.k](grupos())));
+  document.querySelectorAll("#conteudo [data-ir]").forEach((b) => (b.onclick = () => abrirCliente(Number(b.dataset.ir), b.dataset.aba)));
+  document.querySelectorAll("[data-fc]").forEach((b) => (b.onclick = () => { filtroCli = b.dataset.fc; renderEquipe(); }));
+  document.querySelectorAll("tr[data-cid]").forEach((t) => (t.onclick = () => abrirCliente(Number(t.dataset.cid), "implantacao")));
+  if ($("#buscaCli")) { $("#buscaCli").oninput = () => renderEquipe(); if (foco) { const i = $("#buscaCli"); i.focus(); i.setSelectionRange(i.value.length, i.value.length); } }
+  if ($("#novoAcesso")) { $("#novoAcesso").onclick = formAcesso; carregarAcessos(); }
+  if ($("#custos")) $("#custos").onclick = formCustos;
+  if (secao === "simulador") ligarSimulador();
   $("#novoCliente").onclick = () => { modo = "novo"; history.replaceState(null, "", location.pathname); render(); };
-  document.querySelectorAll(".cli").forEach((b) => (b.onclick = () => { atual = clientes.find((c) => String(c.id) === b.dataset.id); modo = "cliente"; aba = "aprovar"; $("#selCliente").value = String(atual.id); history.replaceState(null, "", "?cliente=" + atual.slug); render(); }));
+  document.querySelectorAll(".cli[data-id]").forEach((b) => (b.onclick = () => abrirCliente(Number(b.dataset.id))));
+}
+// ---------- simulador de pacotes ----------
+const PRESETS = {
+  start: { nome: "Start", carrossel: 4, post_unico: 4, story: 0, reels: 0 },
+  essencial: { nome: "Essencial", carrossel: 8, post_unico: 4, story: 8, reels: 0 },
+  diario: { nome: "Diário (food e varejo)", carrossel: 12, post_unico: 0, story: 30, reels: 4 },
+  profissional: { nome: "Profissional", carrossel: 12, post_unico: 4, story: 30, reels: 8 },
+};
+let sim = null;
+function simNovo() { return { ...PRESETS.diario, preset: "diario", ajustes: 20, markup: Number(param?.markup_padrao || 2.8), implantacao: 0, cliente: "" }; }
+function simCalc(s) {
+  const hora = Number(param?.hora || 0), un = (t) => custoUnit(t, {});
+  const tipos = ["carrossel", "post_unico", "story", "reels"];
+  const pecas = tipos.reduce((a, t) => a + Number(s[t] || 0) * un(t), 0);
+  const nFeed = Number(s.carrossel || 0) + Number(s.post_unico || 0) + Number(s.reels || 0);
+  const ajustes = nFeed * Number(s.ajustes || 0) / 100 * Number(param?.minutos_ajuste || 0) / 60 * hora;
+  const gestao = Number(param?.gestao_min || 0) / 60 * hora + Number(param?.fixo || 0);
+  const custo = pecas + ajustes + gestao, mk = Number(s.markup || 0);
+  const preco = custo * mk, sugerido = preco ? Math.ceil(preco / 10) * 10 - 3 : 0;
+  const lucro = sugerido * (1 - Number(param?.imposto || 0)) - custo;
+  const total = tipos.reduce((a, t) => a + Number(s[t] || 0), 0);
+  return { pecas, ajustes, gestao, custo, preco, sugerido, lucro, mkReal: custo ? sugerido / custo : 0, total, dia: sugerido / 30, porPeca: total ? sugerido / total : 0 };
+}
+function simuladorHTML() {
+  if (!param) return '<div class="vazio">Parâmetros de custo não encontrados.</div>';
+  if (!sim) { try { sim = JSON.parse(localStorage.getItem("lumen_sim") || "null"); } catch (e) {} if (!sim) sim = simNovo(); }
+  const r = simCalc(sim);
+  const st = (k, rot, dica) => `<div class="stp"><div><b>${rot}</b><span>${dica}</span></div><div class="ctl"><button data-m="${k}" data-d="-1">−</button><input data-q="${k}" type="number" min="0" value="${sim[k]}"><button data-m="${k}" data-d="1">+</button></div></div>`;
+  const tabela = Object.entries(PRESETS).map(([k, p]) => { const x = simCalc({ ...p, ajustes: sim.ajustes, markup: sim.markup });
+    return `<tr><td><b>${p.nome}</b></td><td>${[p.carrossel && p.carrossel + " carrosséis", p.post_unico && p.post_unico + " posts", p.story && p.story + " stories", p.reels && p.reels + " Reels"].filter(Boolean).join(" · ")}</td><td class="n">${brl(x.custo)}</td><td class="n"><b>${brl(x.sugerido)}</b></td><td class="n">${brl(x.lucro)}</td><td class="n">${brl(x.dia)}</td></tr>`; }).join("");
+  return `<div class="cab"><div><h2 style="font-size:18px">Simulador de pacotes</h2><p>Monte o pacote do cliente e o preço acompanha o markup. Usa os mesmos custos da tela ⚙ Custos e markup (hora ${brl(Number(param.hora))}, fixo ${brl(Number(param.fixo))}, gestão ${param.gestao_min} min, imposto ${Math.round(param.imposto * 100)}%).</p></div><button class="btn" id="custos">⚙ Custos e markup</button></div>
+    <div class="abas">${Object.entries(PRESETS).map(([k, p]) => `<button class="aba ${sim.preset === k ? "on" : ""}" data-pre="${k}">${p.nome}</button>`).join("")}<button class="aba ${sim.preset ? "" : "on"}" data-pre="">Personalizado</button></div>
+    <div class="simg">
+      <div class="caixa">${st("carrossel", "Carrosséis", brl(custoUnit("carrossel", {})) + " cada")}${st("post_unico", "Posts únicos", brl(custoUnit("post_unico", {})) + " cada")}${st("story", "Stories", brl(custoUnit("story", {})) + " cada")}${st("reels", "Reels", brl(custoUnit("reels", {})) + " cada · por modelo, sem avatar")}
+        <div class="grade2" style="margin-top:12px"><label class="campo"><span>Ajustes esperados (% das peças de feed)</span><input id="sAj" type="number" min="0" step="5" value="${sim.ajustes}"></label>
+        <label class="campo"><span>Markup</span><input id="sMk" type="number" min="1" step="0.1" value="${sim.markup}"></label></div></div>
+      <div class="caixa res">
+        <span class="rot">Preço sugerido</span><div class="preco">${brl(r.sugerido)}<small>/mês</small></div>
+        <p>${r.total} peças · ${brl(r.porPeca)} por peça · ${brl(r.dia)} por dia</p>
+        <table class="fin"><tbody>
+          <tr><td>Peças</td><td class="n">${brl(r.pecas)}</td></tr><tr><td>Ajustes previstos</td><td class="n">${brl(r.ajustes)}</td></tr><tr><td>Gestão + custo fixo</td><td class="n">${brl(r.gestao)}</td></tr>
+          <tr><td><b>Custo do mês</b></td><td class="n"><b>${brl(r.custo)}</b></td></tr><tr><td>Preço pelo markup (${fmtX(Number(sim.markup))})</td><td class="n">${brl(r.preco)}</td></tr>
+          <tr><td>Imposto (${Math.round(param.imposto * 100)}%)</td><td class="n">${brl(r.sugerido * param.imposto)}</td></tr><tr><td><b>Lucro líquido</b></td><td class="n" style="color:#86efac"><b>${brl(r.lucro)}</b></td></tr>
+        </tbody></table>
+        <label class="campo" style="margin-top:12px"><span>Aplicar este preço a um cliente</span><select id="sCli"><option value="">Escolha o cliente…</option>${clientes.map((c) => `<option value="${c.id}" ${String(sim.cliente) === String(c.id) ? "selected" : ""}>${esc(c.nome)}${fin[c.id]?.preco_mensal ? " · hoje " + brl(Number(fin[c.id].preco_mensal)) : ""}</option>`).join("")}</select></label>
+        <div class="acoes"><button class="btn" id="sCopiar">Copiar proposta</button><button class="btn pri" id="sAplicar">Aplicar preço</button></div>
+      </div></div>
+    <h3 style="font-size:15px;margin:22px 0 8px">Tabela de pacotes no markup atual</h3>
+    <div class="finbox"><table class="fin"><thead><tr><th>Pacote</th><th>Entrega</th><th class="n">Custo</th><th class="n">Preço</th><th class="n">Lucro líq.</th><th class="n">Por dia</th></tr></thead><tbody>${tabela}</tbody></table></div>
+    <p style="color:var(--tx2);font-size:12px">Sem Reels com avatar. Os preços são recalculados sempre que os custos ou o markup mudam.</p>`;
+}
+function ligarSimulador() {
+  const salva = () => { try { localStorage.setItem("lumen_sim", JSON.stringify(sim)); } catch (e) {} renderEquipe(); };
+  document.querySelectorAll("[data-pre]").forEach((b) => (b.onclick = () => { if (b.dataset.pre) Object.assign(sim, PRESETS[b.dataset.pre], { preset: b.dataset.pre }); else sim.preset = ""; salva(); }));
+  document.querySelectorAll("[data-m]").forEach((b) => (b.onclick = () => { const k = b.dataset.m; sim[k] = Math.max(0, Number(sim[k] || 0) + Number(b.dataset.d) * (k === "story" ? 5 : 1)); sim.preset = ""; salva(); }));
+  document.querySelectorAll("[data-q]").forEach((i) => (i.onchange = () => { sim[i.dataset.q] = Math.max(0, Number(i.value || 0)); sim.preset = ""; salva(); }));
+  $("#sAj").onchange = (e) => { sim.ajustes = Number(e.target.value || 0); salva(); };
+  $("#sMk").onchange = (e) => { sim.markup = Number(e.target.value || 0); salva(); };
+  $("#sCli").onchange = (e) => { sim.cliente = e.target.value; try { localStorage.setItem("lumen_sim", JSON.stringify(sim)); } catch (x) {} };
+  $("#sCopiar").onclick = async () => {
+    const r = simCalc(sim), it = [sim.carrossel && `${sim.carrossel} carrosséis`, sim.post_unico && `${sim.post_unico} posts`, sim.story && `${sim.story} stories`, sim.reels && `${sim.reels} Reels`].filter(Boolean).join(", ");
+    const t = `Pacote Lúmen${sim.preset ? " " + PRESETS[sim.preset].nome : " personalizado"}\n• ${it} por mês\n• Legendas, hashtags e datas do seu segmento\n• Aprovação pelo celular antes de publicar\nInvestimento: ${brl(r.sugerido)}/mês (menos de ${brl(Math.ceil(r.dia))} por dia)`;
+    try { await navigator.clipboard.writeText(t); toast("Proposta copiada"); } catch (e) { modal(`<h3>Proposta</h3><pre>${esc(t)}</pre>`); }
+  };
+  $("#sAplicar").onclick = async (e) => {
+    const id = Number($("#sCli").value); if (!id) return toast("Escolha o cliente", true);
+    const r = simCalc(sim), c = clientes.find((x) => x.id === id);
+    if (!confirm(`Definir o preço de ${c.nome} em ${brl(r.sugerido)}/mês, com markup alvo ${fmtX(Number(sim.markup))}?`)) return;
+    e.target.disabled = true;
+    const row = { ...(fin[id] || {}), cliente_id: id, preco_mensal: r.sugerido, markup_alvo: Number(sim.markup), atualizado_em: new Date().toISOString() };
+    const { error } = await sb.from("lumen_financeiro").upsert(row);
+    e.target.disabled = false; if (error) return toast(error.message, true);
+    fin[id] = row; toast("Preço aplicado a " + c.nome); renderEquipe();
+  };
 }
 // ---------- implantação (equipe) ----------
 const PACOTES = { start: "Start · 8 posts/mês", essencial: "Essencial · 12 posts + 8 stories", profissional: "Profissional · 16 posts + 4 Reels", premium: "Premium com vídeo · 20 posts + 8 Reels" };
@@ -874,6 +1061,17 @@ function cardCliente(c) {
   </button>`;
 }
 
+function numerosCliente(ps, pend) {
+  const n = (st) => ps.filter((p) => p.status === st).length, mes = MES_ATUAL();
+  const pubMes = ps.filter((p) => p.status === "publicado" && mesSP(p.publicado_em) === mes).length;
+  const prev = pautas.filter((a) => a.cliente_id === atual.id && ["planejada", "em_producao"].includes(a.status)).length;
+  const k = (a, num, rot, cls = "", rolar = "") => `<button class="kpi kb ${cls}" data-aba="${a}" ${rolar ? `data-rolar="${rolar}"` : ""}><b>${num}</b><span>${rot}</span></button>`;
+  const r = eu.equipe ? financeiro(atual) : null;
+  return `<div class="kpis kc">${k("aprovar", pend.length, eu.equipe ? "aguardando aprovação" : "para você aprovar", pend.length ? "atencao" : "")}
+    ${k("aprovar", n("ajustar"), "em ajuste", n("ajustar") ? "atencao" : "", "emAndamento")}${k("agenda", n("aprovado"), "aprovados e agendados")}${k("agenda", prev, "pautas previstas")}
+    ${k("publicados", pubMes, "publicados no mês")}${eu.equipe && n("erro") ? k("aprovar", n("erro"), "erros de publicação", "alerta") : ""}
+    ${r ? k("implantacao", r.faixa === "cinza" ? "—" : fmtX(r.markup), FAIXA[r.faixa] + (r.preco ? " · " + brl(r.preco) : ""), r.faixa === "vermelho" ? "alerta" : r.faixa === "amarelo" ? "atencao" : "") : ""}</div>`;
+}
 function renderCliente(silencioso) {
   if (!atual) { $("#conteudo").innerHTML = '<div class="vazio">Nenhum cliente selecionado.</div>'; return; }
   const ps = posts.filter((p) => p.cliente_id === atual.id);
@@ -887,7 +1085,7 @@ function renderCliente(silencioso) {
   let corpo = "";
   if (aba === "aprovar") corpo = pend.length || emAndamento.length
     ? `${pend.length ? `<div class="grade">${pend.map(cardPost).join("")}</div>` : '<div class="vazio">Nada aguardando sua aprovação agora. 🎉</div>'}
-       ${emAndamento.length ? `<h3 style="margin:22px 0 10px;font-size:15px">Em andamento</h3><div class="grade">${emAndamento.map(cardPost).join("")}</div>` : ""}`
+       ${emAndamento.length ? `<h3 id="emAndamento" style="margin:22px 0 10px;font-size:15px">Em andamento</h3><div class="grade">${emAndamento.map(cardPost).join("")}</div>` : ""}`
     : '<div class="vazio">Nada aguardando sua aprovação agora. Os próximos posts chegam aqui e no Telegram um dia antes de irem ao ar.</div>';
   else if (aba === "agenda") corpo = renderAgenda(ps);
   else if (aba === "publicados") corpo = pub.length ? `<div class="grade">${pub.map(cardPost).join("")}</div>` : '<div class="vazio">Ainda não há posts publicados.</div>';
@@ -897,11 +1095,12 @@ function renderCliente(silencioso) {
     ${eu.equipe ? '<button class="voltar" id="voltar">← Todos os clientes</button>' : ""}
     <div class="cab"><div><h2>${esc(atual.nome)}</h2><p>${esc(atual.instagram || "")} · Pacote ${esc(atual.pacote || "—")} · publicações às ${esc(atual.horario_publicacao || "18:30")}</p></div></div>
     ${pr.length ? `<div class="obs" style="border-color:rgba(239,68,68,.5);margin-bottom:14px">${pr.map((x) => `<div style="color:#fca5a5">⚠ ${esc(x)}</div>`).join("")}</div>` : ""}
+    ${numerosCliente(ps, pend)}
     <nav class="abas">
       ${[["aprovar", "Para aprovar", pend.length], ["agenda", "Agenda"], ["publicados", "Publicados", pub.length], ["arquivos", "Arquivos"]].concat(eu.equipe ? [["implantacao", "Gestão"]] : [])
         .map(([k, t, n]) => `<button class="aba ${aba === k ? "on" : ""}" data-aba="${k}">${t}${n ? `<em>${n}</em>` : ""}</button>`).join("")}
     </nav>${corpo}`;
-  document.querySelectorAll("[data-aba]").forEach((b) => (b.onclick = () => { aba = b.dataset.aba; render(); }));
+  document.querySelectorAll("[data-aba]").forEach((b) => (b.onclick = () => { aba = b.dataset.aba; render(); if (b.dataset.rolar) setTimeout(() => document.getElementById(b.dataset.rolar)?.scrollIntoView({ behavior: "smooth", block: "start" }), 50); }));
   if ($("#voltar")) $("#voltar").onclick = () => { modo = "equipe"; atual = null; $("#selCliente").value = ""; history.replaceState(null, "", location.pathname); render(); };
   ligarPosts();
   Object.entries(rascunhos).forEach(([id, v]) => { const t = $(`.ajuste textarea[data-id="${id}"]`); if (t) t.value = v; });
