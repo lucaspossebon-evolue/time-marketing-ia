@@ -181,6 +181,81 @@ main{max-width:1180px;margin:0 auto;padding:18px 16px 60px}
 /* números do cliente */
 .kpis.kc{grid-template-columns:repeat(auto-fit,minmax(130px,1fr))}
 .modal .grade2 label span,.modal label.campo span{font-size:12px;color:var(--tx2)}
+
+/* ===== versão com barra lateral ===== */
+:root{--lw:252px}
+#telaPainel{padding-left:var(--lw)}
+#lateral{position:fixed;left:0;top:0;bottom:0;width:var(--lw);background:var(--bg2);border-right:1px solid var(--line);z-index:30;display:flex;flex-direction:column;overflow:hidden}
+#lateral .lmarca{padding:16px 16px 12px;border-bottom:1px solid var(--line)}
+#lateral .lmarca .marca{margin:0}#lateral .lmarca svg{width:34px;height:34px}#lateral .lmarca b{font-size:18px}
+#lateral .lnav{flex:1;overflow-y:auto;padding:10px 10px 14px;display:flex;flex-direction:column;gap:2px;scrollbar-width:thin}
+#lateral .lt{font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--tx2);padding:10px 10px 6px}
+#lateral .li{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:none;border:0;border-radius:10px;padding:9px 10px;color:var(--tx2);font-size:13.5px;font-weight:600;text-decoration:none}
+#lateral .li i{font-style:normal;width:20px;text-align:center;flex:none;font-size:14px}
+#lateral .li span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#lateral .li em{font-style:normal;font-size:11px;background:var(--card2);color:var(--tx);border-radius:999px;padding:1px 7px}
+#lateral .li em.al{background:rgba(239,68,68,.2);color:#fca5a5}
+#lateral .li:hover{background:var(--card);color:var(--tx)}
+#lateral .li.on{background:rgba(200,255,77,.12);color:var(--ac)}
+#lateral .lsub{margin:2px 0 6px 18px;padding-left:8px;border-left:1px solid var(--line)}
+#lateral .lsub .li{padding:7px 10px;font-size:13px}
+#lateral .bola{width:9px!important;height:9px;border-radius:50%;margin:0 5px;background:#64748b}
+.bola.f-verde{background:var(--ok)!important}.bola.f-amarelo{background:var(--wa)!important}.bola.f-vermelho{background:var(--er)!important}
+#lateral .lbaixo{border-top:1px solid var(--line);margin-top:12px;padding-top:12px;display:flex;flex-direction:column;gap:2px}
+#lateral .lbaixo .btn{margin-bottom:8px}
+.topo .in{max-width:none;padding:12px 24px}.topo .marca,.topo #selCliente,.topo .sair{display:none!important}
+#tituloTopo{font-size:16px;font-weight:800}
+#abreLat{display:none;background:none;border:1px solid var(--line);border-radius:10px;width:38px;height:38px;color:var(--tx);font-size:18px}
+main{max-width:1680px;margin:0;padding:22px 32px 60px}
+#conteudo>nav.abas,#conteudo>.voltar{display:none}
+#veu{display:none}
+@media(max-width:900px){
+  #telaPainel{padding-left:0}#abreLat{display:grid;place-items:center}
+  #lateral{transform:translateX(-100%);transition:transform .2s;box-shadow:0 0 40px rgba(0,0,0,.6)}
+  body.lat-on #lateral{transform:none}body.lat-on #veu{display:block;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:25}
+  main{padding:16px 14px 60px}
+}
+
+#lateral .lmarca{display:flex;align-items:center;justify-content:space-between;gap:6px;min-height:62px}
+#recolher,#tema{background:none;border:1px solid var(--line);border-radius:9px;width:30px;height:30px;color:var(--tx2);font-size:15px;line-height:1;flex:none;display:grid;place-items:center}
+#recolher:hover,#tema:hover{color:var(--tx);border-color:var(--tx2)}
+#tema{margin-left:auto;width:34px;height:34px;font-size:16px}
+.topo .in{gap:12px}.topo .vivo{margin-left:6px}
+#lateral,#telaPainel{transition:width .18s,padding .18s}
+/* menu recolhido */
+@media(min-width:901px){
+  body.lat-mini{--lw:72px}
+  body.lat-mini #lateral .lmarca{flex-direction:column;justify-content:center;padding:12px 8px}
+  body.lat-mini #lateral .lmarca .marca>div,body.lat-mini #lateral .li span,body.lat-mini #lateral .li em,body.lat-mini #lateral .lt,body.lat-mini #lateral .lsub,body.lat-mini #lNovo span{display:none}
+  body.lat-mini #recolher{transform:rotate(180deg)}
+  body.lat-mini #lateral .lnav{padding:10px 8px;align-items:center}
+  body.lat-mini #lateral .li{justify-content:center;padding:10px 0;width:48px}
+  body.lat-mini #lateral .li i{width:auto;font-size:16px}
+  body.lat-mini #lateral .bola{margin:0}
+  body.lat-mini #lNovo{width:44px!important;height:44px;padding:0;font-size:20px}
+  body.lat-mini #lateral .lbaixo{align-items:center}
+}
+/* modo claro */
+body.claro{--bg:#F4F5F1;--bg2:#FFFFFF;--card:#FFFFFF;--card2:#EEF0EA;--line:#DDE1D6;--tx:#15171B;--tx2:#5E645A;--ac:#C8FF4D}
+body.claro .topo{background:rgba(255,255,255,.92)}
+body.claro #lateral .li.on{background:#EDF9D0;color:#3F5A00}
+body.claro #lateral .li em{color:#15171B}
+body.claro .aba.on,body.claro .btn.pri{color:#0B0C0E}
+body.claro .kpi.alerta b,body.claro .probs div{color:#C62828}
+body.claro a{color:#4D6B00}body.claro a.btn,body.claro .btn{color:var(--tx)}body.claro .btn.pri{color:#0B0C0E}body.claro #lateral a.li{color:var(--tx2)}
+body.claro .kpi.atencao b{color:#9A6700}
+body.claro .sin.ok,body.claro .sin.fin-verde{color:#1B7A35}
+body.claro .sin.no,body.claro .sin.fin-vermelho,body.claro #lateral .li em.al{color:#C62828}
+body.claro .sin.at,body.claro .sin.fin-amarelo{color:#9A6700}
+body.claro .res .preco{color:#4D6B00}
+body.claro .cols i{background:linear-gradient(#9BD600,#C8FF4D)}
+body.claro .post,body.claro .caixa,body.claro .kpi,body.claro .cli{box-shadow:0 1px 2px rgba(20,23,27,.05)}
+body.claro .s-aguardando{color:#8A6100}body.claro .s-aprovado{color:#1E4FBF}body.claro .s-ajustar{color:#B45309}body.claro .s-publicado{color:#1B7A35}body.claro .s-erro{color:#C62828}
+body.claro .obs{background:#F6F7F3}
+body.claro .modal>div{background:#fff}
+body.claro .toast{color:#0B0C0E}
+body.claro .login{background:#F4F5F1}
+.selo-novo{font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:1.5px;color:#0B0C0E;background:var(--ac);border-radius:999px;padding:3px 8px;margin-left:8px;vertical-align:middle}
 </style>
 </head>
 <body>
@@ -198,7 +273,9 @@ main{max-width:1180px;margin:0 auto;padding:18px 16px 60px}
 </section>
 
 <section id="telaPainel" hidden>
+  <aside id="lateral"><div class="lmarca"><div class="marca"><svg viewBox="0 0 124 124"><rect x="2" y="2" width="120" height="120" rx="32" fill="#16181C" stroke="#2A2E35" stroke-width="3"/><circle cx="62" cy="62" r="13" fill="#C8FF4D"/><path d="M62 24V36M62 88V100M24 62H36M88 62H100M35 35L43 43M81 81L89 89M89 35L81 43M43 81L35 89" stroke="#C8FF4D" stroke-width="7" stroke-linecap="round"/></svg><div><b>lúmen<i>.</i></b><small id="papel">PAINEL</small></div></div><button id="recolher" title="Recolher menu" aria-label="Recolher menu">«</button></div><nav class="lnav"></nav></aside><div id="veu" onclick="document.body.classList.remove('lat-on')"></div>
   <header class="topo"><div class="in">
+    <button id="abreLat" onclick="document.body.classList.toggle('lat-on')" aria-label="Menu">☰</button><b id="tituloTopo">Painel</b>    <button id="tema" title="Modo claro / escuro" aria-label="Alternar modo claro e escuro">☀</button>
     <div class="marca"><svg viewBox="0 0 124 124"><rect x="2" y="2" width="120" height="120" rx="32" fill="#16181C" stroke="#2A2E35" stroke-width="3"/><circle cx="62" cy="62" r="13" fill="#C8FF4D"/><path d="M62 24V36M62 88V100M24 62H36M88 62H100M35 35L43 43M81 81L89 89M89 35L81 43M43 81L35 89" stroke="#C8FF4D" stroke-width="7" stroke-linecap="round"/></svg><div><b>lúmen<i>.</i></b><small id="papel">PAINEL</small></div></div>
     <select id="selCliente" hidden aria-label="Cliente"></select>
     <span class="vivo" id="vivo"><i></i><span id="vivoTxt">conectando…</span></span>
@@ -1189,6 +1266,69 @@ function renderArquivos(ps) {
   if (!arq.length) return '<div class="vazio">Os arquivos dos posts aparecem aqui.</div>';
   return `<p style="color:var(--tx2);font-size:12.5px;margin-bottom:10px">Toque para baixar o arquivo em alta qualidade.</p><div class="arqs">${arq.map((a) => `<a class="arq" href="${esc(a.u)}?download=" target="_blank" rel="noopener"><div class="th" style="background-image:url('${esc(a.th || "")}')">${a.v ? "<i>▶ vídeo</i>" : ""}</div><div class="l">${esc(a.n)} ⬇</div></a>`).join("")}</div>`;
 }
+
+// ---------- versão com barra lateral (em validação) ----------
+const ICO = { geral: "◧", clientes: "◉", aprovacoes: "✓", financeiro: "$", simulador: "⚙", acessos: "🔐", aprovar: "✓", agenda: "🗓", publicados: "▦", arquivos: "⬇", implantacao: "⚑" };
+function irEquipe(s) { modo = "equipe"; atual = null; secao = s; $("#selCliente").value = ""; history.replaceState(null, "", location.pathname); fecharLateral(); render(); window.scrollTo(0, 0); }
+function irCliente(id, a = "aprovar") { atual = clientes.find((c) => c.id === id); modo = "cliente"; aba = a; $("#selCliente").value = String(atual.id); history.replaceState(null, "", "?cliente=" + atual.slug); fecharLateral(); render(); window.scrollTo(0, 0); }
+function fecharLateral() { document.body.classList.remove("lat-on"); }
+function renderAprovacoes() {
+  const ps = posts.filter((p) => ["aguardando", "ajustar", "erro"].includes(p.status)).sort((a, b) => new Date(a.data_publicacao) - new Date(b.data_publicacao));
+  const grupos = {}; ps.forEach((p) => (grupos[p.cliente_id] = grupos[p.cliente_id] || []).push(p));
+  $("#conteudo").innerHTML = `<div class="cab"><div><h2>Aprovações</h2><p>Tudo que está parado esperando o cliente, em ajuste pelo time ou com erro, de todos os clientes.</p></div></div>
+    ${Object.keys(grupos).length ? Object.entries(grupos).map(([cid, l]) => `<div class="cab" style="margin-top:18px"><div><h2 style="font-size:17px">${esc(nomeCli(Number(cid)))}</h2><p>${l.length} peça(s)</p></div><button class="btn" data-abrecli="${cid}">Abrir cliente →</button></div><div class="grade">${l.map(cardPost).join("")}</div>`).join("") : '<div class="vazio">Nada parado. 🎉</div>'}`;
+  document.querySelectorAll("[data-abrecli]").forEach((b) => (b.onclick = () => irCliente(Number(b.dataset.abrecli))));
+  ligarPosts();
+}
+function montarLateral() {
+  const el = $("#lateral"); if (!el || !eu) return;
+  const g = eu.equipe ? grupos() : null;
+  const item = (on, ico, txt, attrs, n, cls = "") => `<button class="li ${on ? "on" : ""} ${cls}" title="${txt}" ${attrs}><i>${ico}</i><span>${txt}</span>${n ? `<em class="${cls.includes("al") ? "al" : ""}">${n}</em>` : ""}</button>`;
+  let h = "";
+  if (eu.equipe) {
+    const eq = modo === "equipe";
+    h += `<div class="lt">Equipe</div>
+      ${item(eq && secao === "geral", ICO.geral, "Visão geral", 'data-sec2="geral"')}
+      ${item(eq && secao === "clientes", ICO.clientes, "Clientes", 'data-sec2="clientes"', g.comProb.length || "", g.comProb.length ? "al" : "")}
+      ${item(eq && secao === "aprovacoes", ICO.aprovacoes, "Aprovações", 'data-sec2="aprovacoes"', g.aguard.length + g.ajuste.length + g.erro.length || "")}
+      ${item(eq && secao === "financeiro", ICO.financeiro, "Financeiro", 'data-sec2="financeiro"', g.verm.length || "", g.verm.length ? "al" : "")}
+      ${item(eq && secao === "simulador", ICO.simulador, "Simulador de pacotes", 'data-sec2="simulador"')}
+      ${item(eq && secao === "acessos", ICO.acessos, "Acessos", 'data-sec2="acessos"')}
+      <div class="lt" style="margin-top:14px">Clientes</div>
+      <div class="lcli">${clientes.map((c) => { const pr = problemas(c).length, fx = financeiro(c)?.faixa || "cinza", ab = modo === "cliente" && atual?.id === c.id;
+        return `<button class="li cli2 ${ab ? "on" : ""}" title="${esc(c.nome)}" data-cli="${c.id}"><i class="bola f-${pr ? "vermelho" : fx}"></i><span>${esc(c.nome)}</span>${pr ? `<em class="al">${pr}</em>` : ""}</button>${ab ? subCliente() : ""}`; }).join("")}</div>`;
+  } else {
+    h += clientes.map((c) => `<div class="lt">${esc(c.nome)}</div>${modo === "cliente" && atual?.id === c.id ? subCliente() : `<button class="li" data-cli="${c.id}"><i>◉</i><span>Abrir</span></button>`}`).join("");
+  }
+  h += `<div class="lbaixo">${eu.equipe ? `<button class="btn pri" id="lNovo" style="width:100%" title="Novo cliente">+<span> Novo cliente</span></button><a class="li" title="Demo comercial" href="/demo/" target="_blank" rel="noopener"><i>↗</i><span>Demo comercial</span></a>` : ""}
+    <button class="li" id="lSenha" title="Trocar senha"><i>🔑</i><span>Trocar senha</span></button><button class="li" id="lSair" title="Sair"><i>⎋</i><span>Sair</span></button></div>`;
+  el.querySelector(".lnav").innerHTML = h;
+  el.querySelectorAll("[data-sec2]").forEach((b) => (b.onclick = () => irEquipe(b.dataset.sec2)));
+  el.querySelectorAll("[data-cli]").forEach((b) => (b.onclick = () => irCliente(Number(b.dataset.cli))));
+  el.querySelectorAll("[data-aba2]").forEach((b) => (b.onclick = () => irCliente(atual.id, b.dataset.aba2)));
+  if ($("#lNovo")) $("#lNovo").onclick = () => { modo = "novo"; fecharLateral(); history.replaceState(null, "", location.pathname); render(); };
+  $("#lSenha").onclick = () => $("#trocarSenha").click(); $("#lSair").onclick = () => $("#sair").click();
+  $("#tituloTopo").textContent = modo === "cliente" && atual ? atual.nome : modo === "novo" ? "Novo cliente" : ({ geral: "Visão geral", clientes: "Clientes", aprovacoes: "Aprovações", financeiro: "Financeiro", simulador: "Simulador de pacotes", acessos: "Acessos" }[secao] || "Painel");
+}
+function subCliente() {
+  const ps = posts.filter((p) => p.cliente_id === atual.id);
+  const pend = ps.filter((p) => p.status === "aguardando" || (eu.equipe && p.status === "erro")).length;
+  const pub = ps.filter((p) => p.status === "publicado").length;
+  const abas = [["aprovar", "Para aprovar", pend], ["agenda", "Agenda"], ["publicados", "Publicados", pub], ["arquivos", "Arquivos"]].concat(eu.equipe ? [["implantacao", "Gestão"]] : []);
+  return `<div class="lsub">${abas.map(([k, t, n]) => `<button class="li ${aba === k ? "on" : ""}" title="${t}" data-aba2="${k}"><i>${ICO[k]}</i><span>${t}</span>${n ? `<em>${n}</em>` : ""}</button>`).join("")}</div>`;
+}
+const _renderOrig = render;
+render = function (s) {
+  if (modo === "equipe" && secao === "aprovacoes") { renderAprovacoes(); montarLateral(); return; }
+  _renderOrig(s); montarLateral();
+};
+
+// recolher menu e tema (lembra a escolha neste navegador)
+try { if (localStorage.getItem("lumen_lat_mini") === "1") document.body.classList.add("lat-mini"); if (localStorage.getItem("lumen_tema") === "claro") document.body.classList.add("claro"); } catch (e) {}
+const marcaTema = () => { const t = $("#tema"); if (t) t.textContent = document.body.classList.contains("claro") ? "☾" : "☀"; };
+marcaTema();
+$("#recolher").onclick = () => { const m = document.body.classList.toggle("lat-mini"); $("#recolher").title = m ? "Expandir menu" : "Recolher menu"; try { localStorage.setItem("lumen_lat_mini", m ? "1" : "0"); } catch (e) {} };
+$("#tema").onclick = () => { const c = document.body.classList.toggle("claro"); marcaTema(); try { localStorage.setItem("lumen_tema", c ? "claro" : "escuro"); } catch (e) {} };
 
 iniciar();
 </script>
