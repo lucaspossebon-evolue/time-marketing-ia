@@ -1043,10 +1043,11 @@ function renderCriado(s) {
 
 async function renderImplantacao() {
   const box = $("#implant"); if (!box || !atual) return;
-  const [{ data: c, error }, { data: cod }, { data: ac }] = await Promise.all([
+  const [{ data: c, error }, { data: cod }, { data: ac }, { data: mid }] = await Promise.all([
     sb.from("lumen_clientes").select("*").eq("id", atual.id).single(),
     sb.rpc("lumen_codigo_vinculo", { p_cliente: atual.id }),
     sb.from("lumen_acessos").select("email").eq("cliente_id", atual.id),
+    sb.from("lumen_midias").select("*").eq("cliente_id", atual.id).order("criado_em"),
   ]);
   if (error) { box.innerHTML = `<div class="vazio">${esc(error.message)}</div>`; return; }
   const ok = (v) => `<span class="sin ${v ? "ok" : "no"}">${v ? "✓" : "pendente"}</span>`;
@@ -1058,6 +1059,9 @@ async function renderImplantacao() {
         ${ok(!!c.telegram_chat_id)} <span class="sin">Telegram vinculado${!c.telegram_chat_id && cod ? ` · código <b class="mono">${esc(cod)}</b>` : ""}</span>
         ${ok(!!c.ig_user_id)} <span class="sin">Instagram conectado</span>
         ${ok((ac || []).length)} <span class="sin">Acesso ao painel</span>
+        ${ok(c.kit?.identidade?.autorizacao === "sim")} <span class="sin">Autorização de imagem</span>
+        ${ok((mid || []).some((m) => m.ativa && m.tipo === "foto"))} <span class="sin">Fotos reais (${(mid || []).filter((m) => m.ativa && m.tipo === "foto").length})</span>
+        ${ok(c.kit?.identidade?.status === "aprovada")} <span class="sin">Identidade validada</span>
       </div></div></div>
     </div>
     <div class="post"><div class="corpo">
@@ -1077,6 +1081,7 @@ async function renderImplantacao() {
       ${c.briefing ? `<details><summary style="cursor:pointer;color:var(--tx2);font-size:13px">Briefing original</summary><pre class="obs" style="white-space:pre-wrap;margin-top:8px;max-height:300px;overflow:auto">${esc(c.briefing)}</pre></details>` : ""}
       <div class="acoes"><button class="btn pri" id="iSalvar">Salvar alterações</button></div>
     </div></div>
+    ${identidadeHTML(c, mid || [])}
     <div class="post" style="margin-top:14px"><div class="corpo">
       <h3>Agenda semanal · horário de cada vaga</h3>
       <p style="color:var(--tx2);font-size:13px">O Estrategista monta as pautas da semana a partir destas vagas, e cada post sai no horário da própria vaga.</p>
@@ -1094,6 +1099,7 @@ async function renderImplantacao() {
   ligarDatas(box);
   ligarAgenda(c);
   ligarFinCliente(c);
+  ligarIdentidade(c);
   $("#iSalvar").onclick = async (e) => {
     e.target.disabled = true;
     const { error: e0 } = await sb.rpc("lumen_atualizar_cliente", { p_cliente: atual.id, p_dados: { nome: $("#iNome").value, instagram: $("#iIg").value, pacote: $("#iPac").value, site: $("#iSite").value, cta: $("#iCta").value, botao: $("#iBot").value } });
@@ -1110,6 +1116,93 @@ async function renderImplantacao() {
     const { error } = await sb.rpc("lumen_excluir_cliente", { p_cliente: atual.id, p_confirmacao: n }); if (error) return toast(error.message, true);
     toast("Cliente excluído"); atual = null; modo = "equipe"; history.replaceState(null, "", location.pathname); await carregar(); montarSeletor(); render();
   };
+}
+
+// ---------- identidade do cliente (kit + fotos reais) ----------
+const ID_STATUS = { rascunho: "Rascunho", em_validacao: "Em validação com o cliente", aprovada: "Aprovada", ajustar: "Ajustar" };
+function identidadeHTML(c, mid) {
+  const d = c.kit?.identidade || {}, cores = Array.isArray(c.kit?.cores) ? c.kit.cores : [];
+  const fotos = mid.filter((m) => m.tipo === "foto"), logo = mid.filter((m) => m.tipo === "logo" && m.ativa).pop();
+  const campo = (id, rot, v, ph = "") => `<label class="campo"><span>${rot}</span><input id="${id}" value="${esc(v || "")}" placeholder="${esc(ph)}"></label>`;
+  const area = (id, rot, v) => `<label class="campo" style="grid-column:1/-1"><span>${rot}</span><textarea id="${id}" style="width:100%;min-height:70px;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;resize:vertical;outline:none">${esc(v || "")}</textarea></label>`;
+  return `<div class="post" style="margin-top:14px"><div class="corpo">
+    <h3>Identidade e fotos reais · validação</h3>
+    <p style="color:var(--tx2);font-size:13px">Levantamos a identidade pelo Instagram da empresa e dos sócios, com autorização de uso de imagem. As artes usam as fotos reais ativas daqui; sem foto, o robô gera imagem com IA.</p>
+    <div class="grade" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px">
+      <label class="campo"><span>Status da identidade</span><select id="idSt">${Object.entries(ID_STATUS).map(([k, t]) => `<option value="${k}" ${(d.status || "rascunho") === k ? "selected" : ""}>${t}</option>`).join("")}</select></label>
+      ${campo("idIgEmp", "Instagram da empresa", d.instagram_empresa || c.instagram, "@empresa")}
+      ${campo("idIgSoc", "Instagram dos sócios", d.instagram_socios, "@socio1, @socio2")}
+      ${campo("idKit", "Link do kit de identidade", d.kit_url, "https://…")}
+      <label class="campo"><span>Autorização de uso de imagem</span><select id="idAut"><option value="nao" ${d.autorizacao !== "sim" ? "selected" : ""}>Pendente</option><option value="sim" ${d.autorizacao === "sim" ? "selected" : ""}>Autorizado</option></select></label>
+      ${campo("idAutPor", "Autorizado por", d.autorizado_por)}
+      ${campo("idAutEm", "Data da autorização", d.autorizado_em, "aaaa-mm-dd")}
+      ${campo("idCores", "Cores (hex, separadas por vírgula)", cores.join(", "), "#0F1720, #3B8BB5")}
+      ${area("idTom", "Tom de voz", d.tom)}
+      ${area("idEst", "Estilo visual", d.estilo)}
+      ${area("idRes", "Restrições de imagem", d.restricoes)}
+    </div>
+    <div style="display:flex;gap:8px;margin:8px 0;flex-wrap:wrap">${cores.map((h) => `<span title="${esc(h)}" style="width:34px;height:34px;border-radius:8px;border:1px solid var(--line);background:${esc(h)}"></span>`).join("")}</div>
+    <label style="display:flex;gap:8px;align-items:center;font-size:13px;margin:6px 0"><input type="checkbox" id="idUsar" ${c.config?.fotos_reais !== false ? "checked" : ""}> Usar fotos reais nas artes deste cliente</label>
+    <h3 style="margin-top:14px">Logo</h3>
+    <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">
+      ${logo ? `<img src="${esc(logo.url)}" alt="Logo do cliente" style="max-height:56px;max-width:260px;background:#0B0C0E;padding:10px;border-radius:10px;border:1px solid var(--line)">` : '<span style="color:var(--tx2);font-size:13px">Nenhum logo enviado.</span>'}
+      <label class="btn" style="cursor:pointer">Enviar logo (PNG)<input type="file" id="idLogo" accept="image/png,image/svg+xml,image/jpeg,image/webp" hidden></label>
+    </div>
+    <h3 style="margin-top:14px">Banco de fotos reais (${fotos.filter((f) => f.ativa).length} ativas)</h3>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px">
+      ${fotos.map((f) => `<div style="border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--bg2);opacity:${f.ativa ? 1 : 0.45}">
+        <img src="${esc(f.url)}" alt="${esc(f.descricao || "Foto do cliente")}" style="width:100%;height:150px;object-fit:cover;display:block">
+        <div style="padding:8px;font-size:12px;display:flex;flex-direction:column;gap:6px"><span>${esc(f.descricao || "Sem descrição")}</span><span style="color:var(--tx2)">${f.usos || 0} uso(s)${f.grupo ? " · " + esc(f.grupo) : ""}</span>
+        <button class="btn" data-midia="${f.id}" data-ativa="${f.ativa ? 1 : 0}" style="padding:6px 10px">${f.ativa ? "Desativar" : "Reativar"}</button></div></div>`).join("") || '<span style="color:var(--tx2);font-size:13px">Nenhuma foto ainda.</span>'}
+    </div>
+    <div class="grade" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-top:10px">
+      ${campo("idFDesc", "Descrição das próximas fotos", "", "Ex.: Rubens, retrato com camiseta Fartec")}
+      ${campo("idFGrupo", "Grupo (opcional)", "", "Ex.: sócios, equipe, escritório")}
+    </div>
+    <div class="acoes"><label class="btn" style="cursor:pointer">+ Enviar fotos<input type="file" id="idFotos" accept="image/*" multiple hidden></label><button class="btn pri" id="idSalvar">Salvar identidade</button></div>
+  </div></div>`;
+}
+function b64Blob(b64, mime) { const s = atob(b64), u = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) u[i] = s.charCodeAt(i); return new Blob([u], { type: mime }); }
+async function subirMidia(c, blob, ext, tipo, descricao, grupo) {
+  const caminho = `lumen/clientes/${c.slug}/fotos/${tipo}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}.${ext}`;
+  const up = await sb.storage.from("marketing").upload(caminho, blob, { contentType: blob.type, upsert: false });
+  if (up.error) throw up.error;
+  const url = sb.storage.from("marketing").getPublicUrl(caminho).data.publicUrl;
+  const { error } = await sb.from("lumen_midias").insert({ cliente_id: c.id, tipo, url, caminho, descricao: descricao || null, grupo: grupo || null, origem: "painel" });
+  if (error) throw error;
+}
+function ligarIdentidade(c) {
+  const box = $("#implant"); if (!$("#idSalvar")) return;
+  box.querySelectorAll("#idSt,#idAut").forEach((e) => (e.style.cssText += ";width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:10px 12px"));
+  $("#idSalvar").onclick = async (e) => {
+    const cores = $("#idCores").value.split(/[,\s]+/).map((x) => x.trim()).filter((x) => /^#[0-9a-f]{3,8}$/i.test(x));
+    e.target.disabled = true;
+    const { error } = await sb.rpc("lumen_salvar_identidade", { p_cliente: c.id, p_dados: {
+      status: $("#idSt").value, instagram_empresa: $("#idIgEmp").value.trim(), instagram_socios: $("#idIgSoc").value.trim(), kit_url: $("#idKit").value.trim(),
+      autorizacao: $("#idAut").value, autorizado_por: $("#idAutPor").value.trim(), autorizado_em: $("#idAutEm").value.trim(),
+      tom: $("#idTom").value, estilo: $("#idEst").value, restricoes: $("#idRes").value, cores, fotos_reais: $("#idUsar").checked } });
+    e.target.disabled = false;
+    if (error) return toast(error.message, true);
+    toast("Identidade salva!"); renderImplantacao();
+  };
+  $("#idFotos").onchange = async (e) => {
+    const fs = [...e.target.files]; if (!fs.length) return;
+    if ($("#idAut").value !== "sim" && !confirm("A autorização de uso de imagem ainda está pendente. Enviar mesmo assim?")) { e.target.value = ""; return; }
+    toast(`Enviando ${fs.length} foto(s)…`);
+    try { for (const f of fs) { const im = await lerImagem(f, 1600); await subirMidia(c, b64Blob(im.data, im.mime), "jpg", "foto", $("#idFDesc").value.trim(), $("#idFGrupo").value.trim()); } toast("Fotos enviadas!"); }
+    catch (er) { toast("Não consegui enviar: " + (er.message || er), true); }
+    renderImplantacao();
+  };
+  $("#idLogo").onchange = async (e) => {
+    const f = e.target.files[0]; if (!f) return;
+    const ext = (f.name.split(".").pop() || "png").toLowerCase().replace("jpeg", "jpg");
+    try { await subirMidia(c, f, ext, "logo", "Logo oficial", "marca"); toast("Logo enviado!"); } catch (er) { toast("Não consegui enviar: " + (er.message || er), true); }
+    renderImplantacao();
+  };
+  box.querySelectorAll("[data-midia]").forEach((b) => (b.onclick = async () => {
+    const { error } = await sb.from("lumen_midias").update({ ativa: b.dataset.ativa !== "1" }).eq("id", b.dataset.midia);
+    if (error) return toast(error.message, true); renderImplantacao();
+  }));
 }
 
 // ---------- acessos (equipe) ----------
