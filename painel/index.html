@@ -5,6 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#0B0C0E">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="app/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Lúmen">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Painel · Lúmen Marketing Digital</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 124 124'%3E%3Crect x='2' y='2' width='120' height='120' rx='32' fill='%2316181C'/%3E%3Ccircle cx='62' cy='62' r='13' fill='%23C8FF4D'/%3E%3Cpath d='M62 24V36M62 88V100M24 62H36M88 62H100M35 35L43 43M81 81L89 89M89 35L81 43M43 81L35 89' stroke='%23C8FF4D' stroke-width='7' stroke-linecap='round'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -89,6 +95,13 @@ main{max-width:1180px;margin:0 auto;padding:18px 16px 60px}
 .hash{color:var(--ac2);font-size:12.5px}
 .obs{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:12.5px;color:var(--tx2)}
 .obs b{color:var(--tx)}
+.appbox{display:flex;gap:14px;align-items:center;flex-wrap:wrap;background:linear-gradient(135deg,rgba(200,255,77,.10),rgba(61,123,255,.08));border:1px solid var(--line);border-radius:16px;padding:14px 16px;margin-bottom:14px}
+.appbox img{width:46px;height:46px;border-radius:12px;flex:none}.appbox .tx{flex:1;min-width:200px}.appbox .tx b{display:block}.appbox .tx small{color:var(--tx2);font-size:12.5px;line-height:1.45;display:block}
+.appbox .bts{display:flex;gap:8px;flex-wrap:wrap}.appbox .x{background:none;border:0;color:var(--tx2);cursor:pointer;font-size:18px;padding:4px 8px}
+.avisos{display:grid;gap:8px;margin-bottom:14px}.aviso-it{border:1px solid var(--line);border-left:4px solid var(--ac);background:var(--bg2);border-radius:12px;padding:10px 12px;display:flex;gap:10px;align-items:flex-start}
+.aviso-it div{flex:1}.aviso-it b{display:block;font-size:14px}.aviso-it p{margin:3px 0 0;color:var(--tx2);font-size:13px;white-space:pre-line}.aviso-it small{color:var(--tx2);font-size:11px}
+.aviso-it button{background:none;border:0;color:var(--tx2);cursor:pointer;font-size:16px}
+.ios-passos{margin:8px 0 0;padding-left:18px;color:var(--tx2);font-size:13px;line-height:1.6}
 .acoes{display:flex;gap:8px;flex-wrap:wrap;margin-top:auto;padding-top:4px}
 .acoes .btn{flex:1}
 .ajuste{display:none;flex-direction:column;gap:8px}
@@ -339,7 +352,7 @@ const PAUTA = { planejada: "Planejada", em_producao: "Em produção", produzida:
 const $ = (s, r = document) => r.querySelector(s);
 const esc = (t) => String(t ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const H = 3600e3;
-let fin = {}, param = null;
+let fin = {}, param = null, avisos = [];
 let sb, eu = null, clientes = [], posts = [], pautas = [], atual = null, aba = "aprovar", modo = "cliente", filtroProb = false, recarregar = null;
 
 function dataBR(iso, comHora = true) {
@@ -411,6 +424,7 @@ async function carregar() {
   ]);
   if (c.error || p.error || a.error) { toast("Erro ao carregar dados", true); return; }
   clientes = c.data; posts = p.data; pautas = a.data;
+  { const av = await sb.from("lumen_avisos").select("*").gte("criado_em", new Date(Date.now() - 45 * 864e5).toISOString()).order("criado_em", { ascending: false }).limit(30); avisos = av.data || []; }
   if (eu?.equipe) {
     const [f, pr] = await Promise.all([sb.from("lumen_financeiro").select("*"), sb.from("lumen_custos_param").select("params").eq("id", 1).maybeSingle()]);
     fin = Object.fromEntries((f.data || []).map((x) => [x.cliente_id, x])); param = pr.data?.params || null;
@@ -1084,6 +1098,7 @@ async function renderImplantacao() {
       <div class="acoes"><button class="btn pri" id="iSalvar">Salvar alterações</button></div>
     </div></div>
     ${identidadeHTML(c, mid || [])}
+    ${avisoEquipeHTML(c)}
     <div class="post" style="margin-top:14px"><div class="corpo">
       <h3>Agenda semanal · horário de cada vaga</h3>
       <p style="color:var(--tx2);font-size:13px">O Estrategista monta as pautas da semana a partir destas vagas, e cada post sai no horário da própria vaga.</p>
@@ -1101,7 +1116,7 @@ async function renderImplantacao() {
   ligarDatas(box);
   ligarAgenda(c);
   ligarFinCliente(c);
-  ligarIdentidade(c);
+  ligarIdentidade(c); ligarAvisoEquipe(c);
   $("#iSalvar").onclick = async (e) => {
     e.target.disabled = true;
     const { error: e0 } = await sb.rpc("lumen_atualizar_cliente", { p_cliente: atual.id, p_dados: { nome: $("#iNome").value, instagram: $("#iIg").value, pacote: $("#iPac").value, site: $("#iSite").value, cta: $("#iCta").value, botao: $("#iBot").value } });
@@ -1364,7 +1379,7 @@ function renderCliente(silencioso) {
   if (aba === "aprovar") corpo = pend.length || emAndamento.length
     ? `${pend.length ? `<div class="grade">${pend.map(cardPost).join("")}</div>` : '<div class="vazio">Nada aguardando sua aprovação agora. 🎉</div>'}
        ${emAndamento.length ? `<h3 id="emAndamento" style="margin:22px 0 10px;font-size:15px">Em andamento</h3><div class="grade">${emAndamento.map(cardPost).join("")}</div>` : ""}`
-    : '<div class="vazio">Nada aguardando sua aprovação agora. Os próximos posts chegam aqui e no Telegram um dia antes de irem ao ar.</div>';
+    : '<div class="vazio">Nada aguardando sua aprovação agora. Os próximos posts chegam aqui um dia antes de irem ao ar, com aviso no celular (app ou Telegram).</div>';
   else if (aba === "agenda") corpo = renderAgenda(ps);
   else if (aba === "publicados") corpo = pub.length ? `<div class="grade">${pub.map(cardPost).join("")}</div>` : '<div class="vazio">Ainda não há posts publicados.</div>';
   else if (aba === "arquivos") corpo = renderArquivos(ps);
@@ -1373,6 +1388,7 @@ function renderCliente(silencioso) {
     ${eu.equipe ? '<button class="voltar" id="voltar">← Todos os clientes</button>' : ""}
     <div class="cab"><div><h2>${esc(atual.nome)}</h2><p>${esc(atual.instagram || "")} · Pacote ${esc(atual.pacote || "—")} · ${(atual.agenda || []).length ? `${atual.agenda.length} vagas/semana com horário próprio` : `publicações às ${esc(atual.horario_publicacao || "18:30")}`}</p></div></div>
     ${pr.length ? `<div class="obs" style="border-color:rgba(239,68,68,.5);margin-bottom:14px">${pr.map((x) => `<div style="color:#fca5a5">⚠ ${esc(x)}</div>`).join("")}</div>` : ""}
+    ${appHTML()}${avisosHTML(atual.id)}
     ${numerosCliente(ps, pend)}
     <nav class="abas">
       ${[["aprovar", "Para aprovar", pend.length], ["agenda", "Agenda"], ["publicados", "Publicados", pub.length], ["arquivos", "Arquivos"]].concat(eu.equipe ? [["implantacao", "Gestão"]] : [])
@@ -1380,7 +1396,7 @@ function renderCliente(silencioso) {
     </nav>${corpo}`;
   document.querySelectorAll("[data-aba]").forEach((b) => (b.onclick = () => { aba = b.dataset.aba; render(); if (b.dataset.rolar) setTimeout(() => document.getElementById(b.dataset.rolar)?.scrollIntoView({ behavior: "smooth", block: "start" }), 50); }));
   if ($("#voltar")) $("#voltar").onclick = () => { modo = "equipe"; atual = null; $("#selCliente").value = ""; history.replaceState(null, "", location.pathname); render(); };
-  ligarPosts();
+  ligarApp(); ligarPosts();
   Object.entries(rascunhos).forEach(([id, v]) => { const t = $(`.ajuste textarea[data-id="${id}"]`); if (t) t.value = v; });
   abertos.forEach((id) => $(`.ajuste[data-id="${id}"]`)?.classList.add("on"));
 }
@@ -1672,6 +1688,97 @@ $("#recolher").onclick = () => { const m = document.body.classList.toggle("lat-m
 $("#tema").onclick = () => { const c = document.body.classList.toggle("claro"); marcaTema(); try { localStorage.setItem("lumen_tema", c ? "claro" : "escuro"); } catch (e) {} };
 
 iniciar();
+
+// ---------- app de aprovação (instalar, notificações) e avisos ----------
+let instalarEvt = null;
+const ehApp = () => matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+const ehIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+const pushOk = () => "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
+const lsGet = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
+const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
+addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); instalarEvt = e; if (modo === "cliente" && $("#appBox")) render(true); });
+addEventListener("appinstalled", () => { instalarEvt = null; toast("App instalado! Agora ative os lembretes."); });
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js", { scope: "./" }).catch(() => {});
+let pushAtivo = null;
+async function verPush() {
+  if (!pushOk()) return (pushAtivo = false);
+  try { const r = await navigator.serviceWorker.ready; pushAtivo = !!(await r.pushManager.getSubscription()) && Notification.permission === "granted"; } catch (e) { pushAtivo = false; }
+  return pushAtivo;
+}
+function b64u(t) { const p = "=".repeat((4 - (t.length % 4)) % 4), b = atob((t + p).replace(/-/g, "+").replace(/_/g, "/")); return Uint8Array.from([...b].map((c) => c.charCodeAt(0))); }
+async function ativarPush() {
+  if (!pushOk()) { toast(ehIOS() ? "No iPhone, instale o app na tela de início primeiro e abra por ele." : "Este navegador não aceita notificações.", true); return; }
+  const perm = await Notification.requestPermission();
+  if (perm !== "granted") { toast("Notificações bloqueadas. Libere nas configurações do navegador para este site.", true); return; }
+  const { data: chave, error: e1 } = await sb.rpc("lumen_push_chave"); if (e1 || !chave) return toast("Não consegui ativar agora. Tente de novo.", true);
+  const reg = await navigator.serviceWorker.ready;
+  let sub = await reg.pushManager.getSubscription();
+  if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64u(chave) });
+  const j = sub.toJSON();
+  const { error } = await sb.rpc("lumen_push_salvar", { p_endpoint: j.endpoint, p_p256dh: j.keys.p256dh, p_auth: j.keys.auth, p_navegador: navigator.userAgent, p_cliente: atual?.id || null });
+  if (error) return toast(error.message, true);
+  pushAtivo = true; toast("Lembretes ativados neste aparelho!");
+  await sb.rpc("lumen_push_testar"); render(true);
+}
+function appHTML() {
+  const fechado = Number(lsGet("lumen_app_fechado") || 0);
+  if (fechado && (pushAtivo || Date.now() - fechado < 7 * 864e5)) return "";
+  if (pushAtivo === null) verPush().then((v) => v && render(true));
+  const instalado = ehApp(), ios = ehIOS();
+  const passos = instalado ? "" : ios
+    ? `<ol class="ios-passos"><li>Abra este painel no <b>Safari</b></li><li>Toque em <b>Compartilhar</b> (quadrado com seta para cima)</li><li>Toque em <b>Adicionar à Tela de Início</b> e depois em <b>Adicionar</b></li><li>Abra o app pelo ícone da Lúmen e toque em <b>Ativar lembretes</b></li></ol>`
+    : "";
+  const bts = [
+    !instalado && instalarEvt ? `<button class="btn pri" id="appInstalar">Instalar app</button>` : "",
+    !pushAtivo && (instalado || !ios) ? `<button class="btn ${instalado || !instalarEvt ? "pri" : ""}" id="appPush">Ativar lembretes</button>` : "",
+    pushAtivo ? `<button class="btn" id="appTeste">Enviar notificação de teste</button>` : "",
+  ].join("");
+  const titulo = pushAtivo ? "Lembretes ativos neste aparelho ✅" : instalado ? "Ative os lembretes" : "Aprove pelo celular, com um toque";
+  const txt = pushAtivo ? "Você vai receber aviso quando chegar peça nova, quando faltar aprovar algo perto do horário e quando a equipe mandar um recado."
+    : instalado ? "Receba um aviso quando chegar peça nova e um lembrete quando faltar aprovar algo perto do horário."
+    : `Instale o app da Lúmen na tela do celular${ios ? "" : " (leva 5 segundos, não precisa de loja)"}: chega aviso de peça nova, lembrete de prazo e recados da equipe.`;
+  return `<div class="appbox" id="appBox"><img src="app/icone-192.png" alt=""><div class="tx"><b>${titulo}</b><small>${txt}</small>${passos}</div><div class="bts">${bts}</div><button class="x" id="appFechar" title="Fechar" aria-label="Fechar">✕</button></div>`;
+}
+function ligarApp() {
+  if ($("#appInstalar")) $("#appInstalar").onclick = async () => { instalarEvt.prompt(); const r = await instalarEvt.userChoice; instalarEvt = null; if (r.outcome === "accepted") toast("Instalando…"); render(true); };
+  if ($("#appPush")) $("#appPush").onclick = async (e) => { e.target.disabled = true; try { await ativarPush(); } finally { if (e.target) e.target.disabled = false; } };
+  if ($("#appTeste")) $("#appTeste").onclick = async () => { const { error } = await sb.rpc("lumen_push_testar"); error ? toast(error.message, true) : toast("Enviada! Deve chegar em alguns segundos."); };
+  if ($("#appFechar")) $("#appFechar").onclick = () => { lsSet("lumen_app_fechado", String(Date.now())); $("#appBox").remove(); };
+  document.querySelectorAll("[data-aviso-x]").forEach((b) => (b.onclick = () => { const v = JSON.parse(lsGet("lumen_avisos_lidos") || "[]"); v.push(Number(b.dataset.avisoX)); lsSet("lumen_avisos_lidos", JSON.stringify(v.slice(-100))); b.closest(".aviso-it").remove(); }));
+}
+function avisosHTML(cid) {
+  const lidos = new Set(JSON.parse(lsGet("lumen_avisos_lidos") || "[]"));
+  const lista = avisos.filter((a) => (a.cliente_id === null || a.cliente_id === cid) && !lidos.has(a.id)).slice(0, 3);
+  if (!lista.length) return "";
+  return `<div class="avisos">${lista.map((a) => `<div class="aviso-it"><span aria-hidden="true">📣</span><div><b>${esc(a.titulo)}</b>${a.texto ? `<p>${esc(a.texto)}</p>` : ""}<small>${new Date(a.criado_em).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}${eu.equipe ? (a.cliente_id ? "" : " · para todos os clientes") : ""}</small></div><button data-aviso-x="${a.id}" title="Marcar como lido" aria-label="Marcar como lido">✕</button></div>`).join("")}</div>`;
+}
+function avisoEquipeHTML(c) {
+  return `<div class="post" style="margin-top:14px"><div class="corpo"><h3>Avisos e notificações</h3>
+    <p style="color:var(--tx2);font-size:13px">O aviso aparece no topo do painel do cliente e chega como notificação no celular de quem instalou o app e ativou os lembretes. Peça nova e lembrete de prazo (20 h antes de ir ao ar, se ainda não aprovou) são automáticos.</p>
+    <div class="grade" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px">
+      <label class="campo"><span>Título (até 80 letras)</span><input id="avTit" maxlength="80" placeholder="Ex.: Posts da semana que vem já estão prontos"></label>
+      <label class="campo"><span>Para</span><select id="avPara"><option value="${c.id}">Só ${esc(c.nome)}</option><option value="">Todos os clientes</option></select></label>
+      <label class="campo" style="grid-column:1/-1"><span>Mensagem (opcional)</span><textarea id="avTxt" maxlength="600" style="width:100%;min-height:60px;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;resize:vertical;outline:none"></textarea></label>
+    </div>
+    <div id="avAparelhos" style="font-size:12.5px;color:var(--tx2);margin-top:6px"></div>
+    <div class="acoes"><button class="btn pri" id="avEnviar">Enviar aviso</button></div></div></div>`;
+}
+async function ligarAvisoEquipe(c) {
+  if (!$("#avEnviar")) return;
+  $("#avPara").style.cssText += ";width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:10px 12px";
+  const n = await sb.rpc("lumen_push_contar", { p_cliente: c.id });
+  if (!n.error) $("#avAparelhos").textContent = `${n.data || 0} aparelho(s) deste cliente com lembretes ativos.`;
+  $("#avEnviar").onclick = async (e) => {
+    const t = $("#avTit").value.trim(); if (t.length < 3) return toast("Escreva um título", true);
+    const para = $("#avPara").value;
+    if (!confirm(para ? `Enviar o aviso para ${c.nome}?` : "Enviar o aviso para TODOS os clientes?")) return;
+    e.target.disabled = true;
+    const { error } = await sb.rpc("lumen_aviso_criar", { p_cliente: para ? Number(para) : null, p_titulo: t, p_texto: $("#avTxt").value });
+    e.target.disabled = false;
+    if (error) return toast(error.message, true);
+    toast("Aviso enviado"); $("#avTit").value = ""; $("#avTxt").value = ""; await carregar();
+  };
+}
 </script>
 </body>
 </html>

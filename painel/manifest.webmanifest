@@ -1,0 +1,17 @@
+{
+  "name": "Lúmen · Aprovação de posts",
+  "short_name": "Lúmen",
+  "description": "Aprove os posts da sua marca, receba lembretes e avisos da equipe Lúmen.",
+  "id": "/painel/",
+  "start_url": "/painel/?app=1",
+  "scope": "/painel/",
+  "display": "standalone",
+  "background_color": "#0B0C0E",
+  "theme_color": "#0B0C0E",
+  "lang": "pt-BR",
+  "icons": [
+    { "src": "app/icone-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "app/icone-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "app/icone-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
