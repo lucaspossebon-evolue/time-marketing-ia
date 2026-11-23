@@ -789,16 +789,16 @@ const KSTEPS = [
     { k: "regiao", t: "text", l: "Região atendida", who: "Cliente" } ] },
   { id: "marca", nome: "Marca", lead: "Identidade visual e tom de voz. Vira o guia de marca que o robô lê antes de cada peça.", fields: [
     { k: "cores", t: "colors", l: "Cores da marca (principal, apoio, destaque)", full: 1 },
-    { k: "tom", t: "select", l: "Tom de voz", req: 1, who: "Juntos", opts: () => Object.entries(TOM) },
+    { k: "tom", t: "select", l: "Tom de voz", who: "Página do cliente", opts: () => Object.entries(TOM), hint: "Pode deixar em branco: o cliente escolhe na página Conheça seu cliente e volta preenchido." },
     { k: "fonte", t: "text", l: "Fonte da marca (se houver)", who: "Cliente" },
     { k: "cta", t: "text", l: "Chamada padrão (CTA)", req: 1, who: "Juntos", hint: "Ex.: Chame no WhatsApp e agende uma conversa." },
     { k: "proibidos", t: "textarea", l: "Temas e palavras proibidos", who: "Cliente", hint: "Concorrentes, política, preços, promessas que não pode fazer." },
     { k: "referencias", t: "textarea", l: "Perfis de referência que o cliente admira", who: "Cliente" },
     { k: "_m", t: "title", l: "Materiais" },
-    { k: "coresOk", t: "check", l: "Cores confirmadas pelo cliente", req: 1, who: "Cliente" },
+    { k: "coresOk", t: "check", l: "Cores confirmadas pelo cliente", who: "Página do cliente", hint: "Pode deixar em branco: o cliente escolhe na página Conheça seu cliente e volta preenchido." },
     { k: "logoCor", t: "check", l: "Logo colorida em PNG com fundo transparente", req: 1, who: "Cliente" },
     { k: "logoBranco", t: "check", l: "Logo branca em PNG com fundo transparente", who: "Cliente" },
-    { k: "exemplos", t: "check", l: "3 posts que o cliente gosta e 3 que não gosta", who: "Cliente" } ] },
+    { k: "exemplos", t: "check", l: "Posts que o cliente gosta e não gosta", who: "Página do cliente", hint: "O cliente marca Gostei / Não combina nos modelos da página Conheça seu cliente." } ] },
   { id: "conteudo", nome: "Conteúdo", lead: "Pilares do rodízio semanal e calendário de datas.", fields: [
     { k: "pilares", t: "pilares", l: "Pilares de conteúdo (escolha de 3 a 5)", req: 1, who: "Juntos", full: 1 },
     { k: "datasSetor", t: "datas", l: "Datas do setor", full: 1 },
@@ -822,7 +822,7 @@ const KSTEPS = [
     { k: "contrato", t: "check", l: "Contrato assinado", req: 1, who: "Juntos" },
     { k: "termoDados", t: "check", l: "Termo de tratamento de dados (LGPD)", req: 1, who: "Juntos" },
     { k: "cienciaIA", t: "check", l: "Ciente da marcação de conteúdo feito com IA", req: 1, who: "Cliente" },
-    { k: "autImagem", t: "check", l: "Autorização de uso de imagem de quem aparece", who: "Cliente", reqIf: (c) => !!(c.fotosReais || c.pacote === "premium") },
+    { k: "autImagem", t: "check", l: "Autorização de uso de imagem de quem aparece", who: "Página do cliente", hint: "O cliente aceita na página Conheça seu cliente, com nome e cargo; fica registrado no sistema." },
     { k: "consentAvatar", t: "check", l: "Consentimento do dono para o avatar (HeyGen)", who: "Cliente", reqIf: (c) => c.pacote === "premium", showIf: (c) => c.pacote === "premium" },
     { k: "pagamento", t: "check", l: "Implantação e 1ª mensalidade pagas", req: 1, who: "Cliente" } ] },
   { id: "gerar", nome: "Guia e criação", lead: "Anotações livres e geração do guia de marca com IA." },
@@ -1131,14 +1131,15 @@ function preferenciasHTML(c) {
   const linha = (r, v) => v ? `<div><span style="color:var(--tx2)">${r}:</span> ${esc(v)}</div>` : "";
   return `<h3 style="margin-top:16px">Conheça seu cliente · escolhas do cliente</h3>
     <p style="color:var(--tx2);font-size:13px">Página onde o cliente escolhe estilo de imagem, jeito de escrever, vídeos, cores e assuntos, a partir de amostras feitas com a marca dele. As escolhas atualizam o kit e o guia de marca automaticamente.</p>
-    <div style="font-size:13px;margin:6px 0">Amostras: ${nImg ? `${nImg} imagens e ${Object.keys(a.textos || {}).length} textos prontos` : "ainda não geradas (rodar gerar_amostras.py no robô)"}</div>
+    <div style="font-size:13px;margin:6px 0">Amostras: ${nImg ? `${nImg} imagens, ${Object.keys(a.textos || {}).length} textos e ${(a.especificos || []).length} peças com a marca do cliente` : "ainda não geradas"}</div>
+    <div id="pedStatus" style="font-size:13px;margin:6px 0;color:var(--tx2)"></div>
     ${p.salvo_em ? `<div style="background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:12px;font-size:13px;display:grid;gap:4px">
       ${linha("Respondido em", new Date(p.salvo_em).toLocaleString("pt-BR"))}${linha("Por", p.respondente)}
       ${linha("Estilo das imagens", ESTILOS_IMG[p.estilo_imagem])}${linha("Pessoas", PREF_ROT.pessoas[p.pessoas])}
       ${linha("Tom", PREF_ROT.tom[p.tom])}${linha("Vídeos", PREF_ROT.video[p.video])}
       ${linha("Quer ver", p.temas_gosta)}${linha("Evitar", p.temas_evitar)}${linha("Palavras para usar", p.palavras_usar)}
       ${linha("Palavras a evitar", p.palavras_evitar)}${linha("Observações", p.obs)}</div>` : `<div style="font-size:13px;color:var(--tx2)">O cliente ainda não respondeu.</div>`}
-    <div class="acoes"><button class="btn" id="prefLink" type="button">Copiar link para o cliente</button></div>`;
+    <div class="acoes"><button class="btn" id="pedAmostras" type="button">${nImg ? "Gerar amostras de novo" : "Gerar amostras"}</button><button class="btn" id="prefLink" type="button">Copiar link para o cliente</button></div>`;
 }
 function identidadeHTML(c, mid) {
   const d = c.kit?.identidade || {}, cores = Array.isArray(c.kit?.cores) ? c.kit.cores : [];
@@ -1201,6 +1202,28 @@ function ligarIdentidade(c) {
     if (error) return toast(error.message, true);
     const url = `${location.origin}/conheca/?t=${data}`;
     try { await navigator.clipboard.writeText(url); toast("Link copiado! Envie para o cliente."); } catch (e) { prompt("Copie o link para o cliente:", url); }
+  };
+  const PED_ROT = { pendente: "na fila do robô", rodando: "gerando agora (15 a 25 min)", feito: "prontas", erro: "deram erro" };
+  let pedTimer = null;
+  const verPedido = async () => {
+    const { data } = await sb.from("lumen_pedidos").select("*").eq("cliente_id", c.id).eq("acao", "amostras").order("id", { ascending: false }).limit(1);
+    const p = data?.[0], el = $("#pedStatus"); if (!el) return clearInterval(pedTimer);
+    if (!p) { el.textContent = "Gera 4 imagens em estilos diferentes, 3 textos e 5 peças com a marca do cliente (cerca de 15 imagens no Gemini). Precisa do guia de marca pronto."; return; }
+    const quando = new Date(p.concluido_em || p.iniciado_em || p.criado_em).toLocaleString("pt-BR");
+    el.innerHTML = `Amostras ${PED_ROT[p.status]} · ${quando}${p.status === "erro" ? `<details style="margin-top:4px"><summary>Ver erro</summary><pre style="white-space:pre-wrap;font-size:11px">${esc((p.saida || "").slice(-1200))}</pre></details>` : ""}`;
+    el.style.color = p.status === "erro" ? "var(--er)" : p.status === "feito" ? "var(--ok)" : "var(--tx2)";
+    if (["pendente", "rodando"].includes(p.status) && !pedTimer) pedTimer = setInterval(verPedido, 30000);
+    if (p.status === "feito" && pedTimer) { clearInterval(pedTimer); pedTimer = null; await carregar(); renderImplantacao(); }
+  };
+  verPedido();
+  $("#pedAmostras").onclick = async (e) => {
+    if (!confirm("Gerar as amostras deste cliente? Usa cerca de 15 imagens do Gemini e leva de 15 a 25 minutos.")) return;
+    e.target.disabled = true;
+    const { error } = await sb.rpc("lumen_pedir", { p_cliente: c.id, p_acao: "amostras" });
+    e.target.disabled = false;
+    if (error) return toast(error.message, true);
+    toast("Pedido enviado ao robô"); await verPedido();
+    clearInterval(pedTimer); pedTimer = setInterval(verPedido, 30000);
   };
   box.querySelectorAll("#idSt,#idAut,#idEstilo").forEach((e) => (e.style.cssText += ";width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:10px 12px"));
   $("#idSalvar").onclick = async (e) => {

@@ -71,6 +71,16 @@ section > p.d{color:var(--tx2);font-size:14px;margin-bottom:16px}
 .aviso{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:28px;text-align:center;margin-top:40px}
 .aviso h2{font-size:24px;margin-bottom:8px}.aviso p{color:var(--tx2)}
 .carregando{color:var(--tx2);text-align:center;margin-top:80px}
+.tres{border:1px solid var(--line);background:var(--bg2);border-radius:18px;padding:16px 18px;margin:14px 0 6px}
+.tres-t{font-weight:800;margin:0 0 10px}.tres-t small{color:var(--tx2);font-weight:500}
+.tres ol{margin:0;padding:0;list-style:none;display:grid;gap:10px;counter-reset:t}
+.tres li{counter-increment:t;display:grid;grid-template-columns:30px 1fr;column-gap:10px}
+.tres li::before{content:counter(t);grid-row:span 2;width:30px;height:30px;border-radius:50%;background:var(--ac);color:#0B0C0E;font-weight:800;display:grid;place-items:center}
+.tres li span{color:var(--tx2);font-size:13px}.tres-r{margin:12px 0 0;font-size:13px;color:var(--tx2)}
+.autoriza{margin-top:14px;border:1px solid var(--line);border-radius:14px;padding:14px;background:var(--bg2)}
+.aut-ck{display:flex;gap:10px;align-items:flex-start;font-size:14px;line-height:1.45;cursor:pointer}.aut-ck input{width:20px;height:20px;margin-top:2px;accent-color:var(--ac);flex:none}
+.autoriza .campo input{background:var(--bg)}.aut-campos .campo{margin-top:0}
+.aut-campos{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-top:10px}
 .tipo-mod{margin-top:18px}.tipo-mod h3{font-size:16px;margin-bottom:10px;display:flex;justify-content:space-between;gap:10px;align-items:baseline}
 .tipo-mod h3 small{color:var(--tx2);font-weight:500;font-size:12px}
 .fila{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:8px}
@@ -99,11 +109,18 @@ section > p.d{color:var(--tx2);font-size:14px;margin-bottom:16px}
 
   <div id="carregando" class="carregando">Carregando…</div>
   <div id="invalido" class="aviso" hidden><h2>Link inválido</h2><p>Peça um novo link para a equipe da Lúmen.</p></div>
-  <div id="pronto" class="aviso" hidden><h2>Pronto, recebemos suas escolhas!</h2><p>Elas já entraram no kit de identidade da sua marca. Os próximos posts vão seguir esse jeito.<br>Se mudar de ideia, é só abrir este link de novo.</p></div>
+  <div id="pronto" class="aviso" hidden><h2>Pronto, recebemos suas escolhas!</h2><p>Elas já entraram no kit de identidade da sua marca. Os próximos posts vão seguir esse jeito.<br>Próximo passo: as primeiras peças chegam para você aprovar pelo celular.<br>Se mudar de ideia, é só abrir este link de novo.</p></div>
 
   <form id="form" hidden novalidate>
     <h1>Vamos acertar o jeito da <em id="nomeCli"></em> nas redes</h1>
-    <p class="intro">Leva uns 3 minutos. Preparamos exemplos com a cara do seu negócio: escolha o que mais combina com vocês. Essas escolhas viram o kit de identidade que usamos em todos os posts, assim a gente acerta de primeira e você aprova mais rápido.</p>
+    <p class="intro">Preparamos exemplos com a cara do seu negócio. Suas escolhas viram o kit de identidade que usamos em todos os posts, assim a gente acerta de primeira.</p>
+    <div class="tres">
+      <p class="tres-t">Da sua parte, são só 3 coisas <small>(uns 10 minutos, uma vez só)</small></p>
+      <ol><li><b>Escolher o estilo</b><span>imagens, textos e vídeos, nesta página</span></li>
+        <li><b>Autorizar as fotos</b><span>das pessoas que aparecem nos posts, aqui mesmo</span></li>
+        <li><b>Aprovar pelo celular</b><span>cada peça chega pronta no app; é só tocar em Aprovar</span></li></ol>
+      <p class="tres-r">O resto é com a gente: pesquisa, criação, legendas, agenda e publicação.</p>
+    </div>
     <div class="passos" id="passos" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
 
     <section data-passo="estilo">
@@ -118,6 +135,11 @@ section > p.d{color:var(--tx2);font-size:14px;margin-bottom:16px}
       <h2><span class="n">02</span>Suas fotos</h2>
       <p class="d">Estas são as fotos reais que separamos. Marque as que você <b>não</b> quer que apareçam nos posts.</p>
       <div class="fotos" id="fotos"></div>
+      <div class="autoriza" id="autoriza">
+        <label class="aut-ck"><input type="checkbox" id="autOk"> <span id="autTexto"></span></label>
+        <div class="aut-campos"><label class="campo"><span>Seu nome completo</span><input id="autNome" autocomplete="name"></label>
+          <label class="campo"><span>Cargo</span><input id="autCargo" placeholder="Ex.: sócio, diretor"></label></div>
+      </div>
     </section>
 
     <section data-passo="modelos" id="secModelos">
@@ -216,6 +238,8 @@ async function iniciar() {
   $("#fotos").innerHTML = fotos.map((f) => `<div class="foto"><img src="${esc(f.url)}" alt="${esc(f.descricao || "Foto da empresa")}" loading="lazy">
     <label><input type="checkbox" name="fora" value="${f.id}" ${fora.has(String(f.id)) ? "checked" : ""}> Não usar</label></div>`).join("");
 
+  $("#autTexto").textContent = `Autorizo a Lúmen a usar, nas artes e vídeos do Instagram da ${data.nome || "empresa"}, as fotos acima que não marquei como "Não usar", incluindo a imagem das pessoas que aparecem nelas. Declaro que tenho a autorização dessas pessoas e sei que posso pedir a retirada de qualquer foto a qualquer momento.`;
+  $("#autNome").value = p.respondente || "";
   montarModelos(data, p);
   $("#tons").innerHTML = TONS.map(([v, t]) => opcao("tom", v, t, "", "", p.tom === v)
     .replace('</span></label>', `<span class="texto">${esc(txt[v] || "Exemplo em preparação")}</span></span></label>`)).join("");
@@ -280,17 +304,26 @@ function avaliacoes() {
     return { id: String(m.id), tipo: m.tipo, estilo: m.estilo || "", titulo: m.titulo || "", nota: b.dataset.nota };
   }).filter(Boolean);
 }
+function fotosLiberadas() {
+  if ($("#secFotos").hidden) return [];
+  return [...document.querySelectorAll('input[name="fora"]')].filter((i) => !i.checked).map((i) => Number(i.value));
+}
+function precisaAut() { return fotosLiberadas().length > 0; }
 function mostrarInvalido() { $("#carregando").hidden = true; $("#invalido").hidden = false; }
 function valor(n) { return ($(`input[name="${n}"]:checked`) || {}).value || null; }
 function progresso() {
   const feitos = [valor("estilo") && valor("pessoas"), true, avaliacoes().length >= 3, valor("tom"), valor("video"), true, $("#temasGosta").value.trim()];
   [...$("#passos").children].forEach((s, i) => s.classList.toggle("ok", !!feitos[i]));
-  const falta = [!valor("estilo") && "o estilo das imagens", !valor("tom") && "o jeito de escrever", !valor("video") && "o estilo dos vídeos"].filter(Boolean);
+  const falta = [!valor("estilo") && "o estilo das imagens", precisaAut() && !$("#autOk").checked && "a autorização das fotos", !valor("tom") && "o jeito de escrever", !valor("video") && "o estilo dos vídeos"].filter(Boolean);
   $("#faltam").textContent = falta.length ? "Falta escolher " + falta.join(", ").replace(/, ([^,]*)$/, " e $1") + "." : "Tudo certo! É só enviar.";
 }
 $("#enviar").onclick = async () => {
   $("#erro").textContent = "";
   if (!valor("estilo") || !valor("tom") || !valor("video")) { progresso(); $("#erro").textContent = "Faltam algumas escolhas."; return; }
+  if (precisaAut() && (!$("#autOk").checked || $("#autNome").value.trim().length < 3)) {
+    progresso(); $("#erro").textContent = "Falta autorizar o uso das fotos (marque a caixa e informe seu nome), ou marque \"Não usar\" em todas.";
+    $("#autoriza").scrollIntoView({ behavior: "smooth", block: "center" }); return;
+  }
   const tom = valor("tom"), txt = ((dados.amostras || {}).textos || {})[tom] || "";
   const escolhas = {
     estilo_imagem: valor("estilo"), pessoas: valor("pessoas"), tom, texto_escolhido: txt, video: valor("video"),
@@ -301,7 +334,13 @@ $("#enviar").onclick = async () => {
     fotos_fora: [...document.querySelectorAll('input[name="fora"]:checked')].map((i) => i.value),
     avaliacoes: avaliacoes(),
   };
+  if (!escolhas.respondente && $("#autNome").value.trim()) escolhas.respondente = $("#autNome").value.trim();
   $("#enviar").disabled = true;
+  if (precisaAut()) {
+    const r = await sb.rpc("lumen_pref_autorizar", { p_token: token, p_nome: $("#autNome").value.trim(), p_cargo: $("#autCargo").value.trim(),
+      p_texto: $("#autTexto").textContent, p_fotos: fotosLiberadas(), p_navegador: navigator.userAgent });
+    if (r.error) { $("#enviar").disabled = false; $("#erro").textContent = "Não consegui registrar a autorização: " + r.error.message; return; }
+  }
   const { error } = await sb.rpc("lumen_pref_salvar", { p_token: token, p_escolhas: escolhas });
   $("#enviar").disabled = false;
   if (error) { $("#erro").textContent = "Não consegui salvar. Tente de novo em instantes."; return; }
