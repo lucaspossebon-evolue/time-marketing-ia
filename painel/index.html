@@ -1127,7 +1127,7 @@ function identidadeHTML(c, mid) {
   const area = (id, rot, v) => `<label class="campo" style="grid-column:1/-1"><span>${rot}</span><textarea id="${id}" style="width:100%;min-height:70px;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;resize:vertical;outline:none">${esc(v || "")}</textarea></label>`;
   return `<div class="post" style="margin-top:14px"><div class="corpo">
     <h3>Identidade e fotos reais · validação</h3>
-    <p style="color:var(--tx2);font-size:13px">Levantamos a identidade pelo Instagram da empresa e dos sócios, com autorização de uso de imagem. As artes usam as fotos reais ativas daqui; sem foto, o robô gera imagem com IA.</p>
+    <p style="color:var(--tx2);font-size:13px">Levantamos a identidade pelo Instagram da empresa e dos sócios, com autorização de uso de imagem. As artes usam as fotos reais ativas daqui; sem foto, o robô gera imagem com IA. Com foto real, a foto fica no alto da arte e o texto vai abaixo dela; o <b>foco</b> de cada foto diz qual parte aparece (alto: rosto no topo da foto; baixo: assunto na parte de baixo).</p>
     <div class="grade" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px">
       <label class="campo"><span>Status da identidade</span><select id="idSt">${Object.entries(ID_STATUS).map(([k, t]) => `<option value="${k}" ${(d.status || "rascunho") === k ? "selected" : ""}>${t}</option>`).join("")}</select></label>
       ${campo("idIgEmp", "Instagram da empresa", d.instagram_empresa || c.instagram, "@empresa")}
@@ -1153,6 +1153,7 @@ function identidadeHTML(c, mid) {
       ${fotos.map((f) => `<div style="border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--bg2);opacity:${f.ativa ? 1 : 0.45}">
         <img src="${esc(f.url)}" alt="${esc(f.descricao || "Foto do cliente")}" style="width:100%;height:150px;object-fit:cover;display:block">
         <div style="padding:8px;font-size:12px;display:flex;flex-direction:column;gap:6px"><span>${esc(f.descricao || "Sem descrição")}</span><span style="color:var(--tx2)">${f.usos || 0} uso(s)${f.grupo ? " · " + esc(f.grupo) : ""}</span>
+        <label style="display:flex;gap:6px;align-items:center;color:var(--tx2)">Foco <select data-foco="${f.id}" aria-label="Foco da foto" style="flex:1;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:4px 6px;color:var(--tx)">${["alto", "meio", "baixo"].map((o) => `<option value="${o}" ${(f.foco || "meio") === o ? "selected" : ""}>${o}</option>`).join("")}</select></label>
         <button class="btn" data-midia="${f.id}" data-ativa="${f.ativa ? 1 : 0}" style="padding:6px 10px">${f.ativa ? "Desativar" : "Reativar"}</button></div></div>`).join("") || '<span style="color:var(--tx2);font-size:13px">Nenhuma foto ainda.</span>'}
     </div>
     <div class="grade" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-top:10px">
@@ -1199,6 +1200,10 @@ function ligarIdentidade(c) {
     try { await subirMidia(c, f, ext, "logo", "Logo oficial", "marca"); toast("Logo enviado!"); } catch (er) { toast("Não consegui enviar: " + (er.message || er), true); }
     renderImplantacao();
   };
+  box.querySelectorAll("[data-foco]").forEach((sel) => (sel.onchange = async () => {
+    const { error } = await sb.from("lumen_midias").update({ foco: sel.value }).eq("id", sel.dataset.foco);
+    error ? toast(error.message, true) : toast("Foco salvo · vale para as próximas artes");
+  }));
   box.querySelectorAll("[data-midia]").forEach((b) => (b.onclick = async () => {
     const { error } = await sb.from("lumen_midias").update({ ativa: b.dataset.ativa !== "1" }).eq("id", b.dataset.midia);
     if (error) return toast(error.message, true); renderImplantacao();
