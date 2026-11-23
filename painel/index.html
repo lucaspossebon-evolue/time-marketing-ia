@@ -95,6 +95,18 @@ main{max-width:1180px;margin:0 auto;padding:18px 16px 60px}
 .hash{color:var(--ac2);font-size:12.5px}
 .obs{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:12.5px;color:var(--tx2)}
 .obs b{color:var(--tx)}
+.g-topo{display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:12px}.g-topo b{display:block;font-size:16px}.g-topo small{color:var(--tx2);font-size:12.5px}
+.g-barra{flex:1;min-width:160px;max-width:320px;height:8px;border-radius:99px;background:var(--card2);overflow:hidden}.g-barra span{display:block;height:100%;background:var(--ac)}
+details.etapa{background:var(--card);border:1px solid var(--line);border-radius:16px;margin-bottom:10px;overflow:hidden}
+details.etapa>summary{list-style:none;display:flex;gap:12px;align-items:center;padding:14px 16px;cursor:pointer}details.etapa>summary::-webkit-details-marker{display:none}
+details.etapa .num{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:13px;background:var(--card2);color:var(--tx2);flex:none}
+details.etapa.ok .num{background:var(--ac);color:#0B0C0E}details.etapa.pend .num{border:1.5px solid var(--wa);color:var(--wa);background:none}
+details.etapa .tt{flex:1;min-width:0}details.etapa .tt b{display:block;font-size:15px}details.etapa .tt small{color:var(--tx2);font-size:12.5px}
+details.etapa .seta{color:var(--tx2);font-size:20px;transition:transform .15s}details.etapa[open] .seta{transform:rotate(90deg)}
+details.etapa[open]>summary{border-bottom:1px solid var(--line)}
+.etapa-corpo{padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.etapa-corpo .post{border:0;background:none;border-radius:0;margin:0!important}.etapa-corpo .post .corpo{padding:0}
+.etapa-corpo .post+.post{border-top:1px solid var(--line)!important;padding-top:14px}
 .appbox{display:flex;gap:14px;align-items:center;flex-wrap:wrap;background:linear-gradient(135deg,rgba(200,255,77,.10),rgba(61,123,255,.08));border:1px solid var(--line);border-radius:16px;padding:14px 16px;margin-bottom:14px}
 .appbox img{width:46px;height:46px;border-radius:12px;flex:none}.appbox .tx{flex:1;min-width:200px}.appbox .tx b{display:block}.appbox .tx small{color:var(--tx2);font-size:12.5px;line-height:1.45;display:block}
 .appbox .bts{display:flex;gap:8px;flex-wrap:wrap}.appbox .x{background:none;border:0;color:var(--tx2);cursor:pointer;font-size:18px;padding:4px 8px}
@@ -352,7 +364,7 @@ const PAUTA = { planejada: "Planejada", em_producao: "Em produção", produzida:
 const $ = (s, r = document) => r.querySelector(s);
 const esc = (t) => String(t ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const H = 3600e3;
-let fin = {}, param = null, avisos = [];
+let fin = {}, param = null, avisos = [], gestaoAberta = {};
 let sb, eu = null, clientes = [], posts = [], pautas = [], atual = null, aba = "aprovar", modo = "cliente", filtroProb = false, recarregar = null;
 
 function dataBR(iso, comHora = true) {
@@ -1067,21 +1079,7 @@ async function renderImplantacao() {
   if (error) { box.innerHTML = `<div class="vazio">${esc(error.message)}</div>`; return; }
   const ok = (v) => `<span class="sin ${v ? "ok" : "no"}">${v ? "✓" : "pendente"}</span>`;
   const lista = (c.datas && (c.datas.datas || c.datas)) || [];
-  box.innerHTML = `
-    <div class="clis" style="margin-bottom:16px">
-      <div class="cli" style="cursor:default"><div><div class="n">Checklist da implantação</div><div class="sinais">
-        ${ok(!!c.marca)} <span class="sin">Guia de marca</span>
-        ${ok(!!c.telegram_chat_id)} <span class="sin">Telegram vinculado${!c.telegram_chat_id && cod ? ` · código <b class="mono">${esc(cod)}</b>` : ""}</span>
-        ${ok(!!c.ig_user_id)} <span class="sin">Instagram conectado</span>
-        ${ok((ac || []).length)} <span class="sin">Acesso ao painel</span>
-        ${ok(c.kit?.identidade?.autorizacao === "sim")} <span class="sin">Autorização de imagem</span>
-        ${ok((mid || []).some((m) => m.ativa && m.tipo === "foto"))} <span class="sin">Fotos reais (${(mid || []).filter((m) => m.ativa && m.tipo === "foto").length})</span>
-        ${ok(c.kit?.identidade?.status === "aprovada")} <span class="sin">Identidade validada</span>
-        ${ok(!!c.kit?.preferencias?.salvo_em)} <span class="sin">Preferências do cliente</span>
-      </div></div></div>
-    </div>
-    ${enviarClienteHTML(c, ac || [])}
-    <div class="post"><div class="corpo">
+  const DADOS_HTML = `<div class="post"><div class="corpo">
       <div class="grade" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px">
         <label class="campo"><span>Status</span><select id="iSt">${["implantacao", "ativo", "pausado", "cancelado"].map((s) => `<option ${c.status === s ? "selected" : ""}>${s}</option>`).join("")}</select></label>
         <label class="campo"><span>Horário padrão (vaga sem horário)</span><input id="iHora" value="${esc(c.horario_publicacao || "18:30")}"></label>
@@ -1097,22 +1095,43 @@ async function renderImplantacao() {
       <h3>Datas comemorativas</h3><div id="dtWrap">${datasHTML(lista)}</div>
       ${c.briefing ? `<details><summary style="cursor:pointer;color:var(--tx2);font-size:13px">Briefing original</summary><pre class="obs" style="white-space:pre-wrap;margin-top:8px;max-height:300px;overflow:auto">${esc(c.briefing)}</pre></details>` : ""}
       <div class="acoes"><button class="btn pri" id="iSalvar">Salvar alterações</button></div>
-    </div></div>
-    ${identidadeHTML(c, mid || [])}
-    ${avisoEquipeHTML(c)}
-    <div class="post" style="margin-top:14px"><div class="corpo">
+    </div></div>`;
+  const AGENDA_HTML = `<div class="post" style="margin-top:14px"><div class="corpo">
       <h3>Agenda semanal · horário de cada vaga</h3>
       <p style="color:var(--tx2);font-size:13px">O Estrategista monta as pautas da semana a partir destas vagas, e cada post sai no horário da própria vaga.</p>
       <div id="agWrap">${agendaHTML(c.agenda || [])}</div>
       <div class="acoes"><button class="btn" id="agAdd">+ Vaga</button><button class="btn pri" id="agSalvar">Salvar agenda</button></div>
-    </div></div>
-    <div class="post" style="margin-top:14px"><div class="corpo">
-      <h3>Telegram de aprovação</h3>
+    `;
+  const TG_HTML = `<div class="post" style="margin-top:14px"><div class="corpo">
+      <h3>Telegram de aprovação (opcional)</h3>
       <p style="color:var(--tx2);font-size:13px">${c.telegram_chat_id ? "Vinculado ✓ — o cliente recebe as prévias no @lumen_aprovacao_bot." : `Não vinculado. O cliente envia <b class="mono">/vincular ${esc(cod || "—")}</b> ao @lumen_aprovacao_bot.`}</p>
       <div class="acoes"><button class="btn" id="iNovoCod">Gerar novo código</button>${c.telegram_chat_id ? '<button class="btn er" id="iDesv">Desvincular Telegram</button>' : ""}</div>
-    </div></div>
-    ${eu?.equipe ? finClienteHTML(c) : ""}
-    ${c.slug !== "lumen" ? `<div class="post" style="margin-top:14px;border-color:rgba(239,68,68,.5)"><div class="corpo"><h3 style="color:#fca5a5">Excluir cliente</h3><p style="color:var(--tx2);font-size:13px">Apaga o cliente com as pautas, os posts e os acessos ao painel. Não dá para desfazer. O que já foi publicado no Instagram continua lá. Para só parar a produção, mude o status para <b>pausado</b>.</p><div class="acoes"><button class="btn er" id="iExcluir">Excluir ${esc(c.nome)}</button></div></div></div>` : ""}`;
+    <div class="post" style="margin-top:14px"><div class="corpo"><h3>Instagram (publicação automática)</h3><p style="color:var(--tx2);font-size:13px">${c.ig_user_id ? "Conectado ✓ — os posts aprovados vão ao ar sozinhos." : `No app <b>Lúmen Publicador</b> (developers.facebook.com): Funções do app › adicionar <b>${esc(c.instagram || "o perfil")}</b> como Testador do Instagram. O cliente aceita o convite no Instagram (Configurações › Apps e sites). Depois o robô conecta o token.`}</p></div></div>`;
+  const EXC_HTML = c.slug !== "lumen" ? `<div class="post" style="margin-top:14px;border-color:rgba(239,68,68,.5)"><div class="corpo"><h3 style="color:#fca5a5">Excluir cliente</h3><p style="color:var(--tx2);font-size:13px">Apaga o cliente com as pautas, os posts e os acessos ao painel. Não dá para desfazer. O que já foi publicado no Instagram continua lá. Para só parar a produção, mude o status para <b>pausado</b>.</p><div class="acoes"><button class="btn er" id="iExcluir">Excluir ${esc(c.nome)}</button></div></div></div>` : "";
+  const nFotos = (mid || []).filter((m) => m.ativa && m.tipo === "foto").length, temLogo = (mid || []).some((m) => m.ativa && m.tipo === "logo");
+  const am = c.kit?.amostras || {}, temAm = Object.keys(am.imagens || {}).length > 0, pref = c.kit?.preferencias || {};
+  const ETAPAS = [
+    ["dados", "Dados e guia de marca", !!c.marca && c.marca.length > 200, c.marca ? "Guia pronto · " + (lista.length || 0) + " datas" : "Falta gerar o guia", () => DADOS_HTML],
+    ["fotos", "Logo, cores e fotos reais", temLogo && nFotos > 0, `${temLogo ? "Logo ✓" : "Sem logo"} · ${nFotos} foto(s) ativa(s)`, () => identidadeHTML(c, mid || [])],
+    ["amostras", "Amostras para o cliente escolher", temAm, temAm ? `${Object.keys(am.imagens).length} estilos · ${(am.especificos || []).length} peças com a marca` : "Ainda não geradas", () => amostrasHTML(c)],
+    ["enviar", "Enviar ao cliente", (ac || []).length > 0, (ac || []).length ? "Acesso criado: " + ac[0].email : "Falta criar o acesso do cliente", () => enviarClienteHTML(c, ac || [])],
+    ["respostas", "Respostas do cliente", !!pref.salvo_em && c.kit?.identidade?.autorizacao === "sim", pref.salvo_em ? `Respondido em ${new Date(pref.salvo_em).toLocaleDateString("pt-BR")}${c.kit?.identidade?.autorizacao === "sim" ? " · fotos autorizadas" : " · falta autorizar as fotos"}` : "Aguardando o cliente", () => respostasHTML(c)],
+    ["agenda", "Agenda de publicação", (c.agenda || []).length > 0, (c.agenda || []).length ? `${c.agenda.length} vagas por semana` : `Tudo às ${c.horario_publicacao || "18:30"}`, () => AGENDA_HTML],
+    ["conexoes", "Conexões: Instagram e Telegram", !!c.ig_user_id, `${c.ig_user_id ? "Instagram ✓" : "Instagram pendente"} · ${c.telegram_chat_id ? "Telegram ✓" : "Telegram opcional"}`, () => TG_HTML],
+    ["avisos", "Avisos e notificações", null, "Recados para o cliente pelo app", () => avisoEquipeHTML(c)],
+  ];
+  const aberta = gestaoAberta[c.id] || (ETAPAS.find((e) => e[2] === false) || ETAPAS[0])[0];
+  const feitas = ETAPAS.filter((e) => e[2] === true).length, total = ETAPAS.filter((e) => e[2] !== null).length;
+  box.innerHTML = `
+    <div class="g-topo"><div><b>Implantação de ${esc(c.nome)}</b><small>${feitas} de ${total} etapas concluídas · status: ${esc(c.status)}</small></div>
+      <div class="g-barra"><span style="width:${Math.round(feitas / total * 100)}%"></span></div></div>
+    ${ETAPAS.map(([k, t, ok, resumo, corpo], n) => `<details class="etapa ${ok === true ? "ok" : ok === false ? "pend" : ""}" data-etapa="${k}" ${k === aberta ? "open" : ""}>
+      <summary><span class="num">${ok === true ? "✓" : n + 1}</span><span class="tt"><b>${t}</b><small>${esc(resumo)}</small></span><span class="seta" aria-hidden="true">›</span></summary>
+      <div class="etapa-corpo">${corpo()}</div></details>`).join("")}
+    <details class="etapa" data-etapa="mais" ${aberta === "mais" ? "open" : ""}><summary><span class="num">⋯</span><span class="tt"><b>Mais opções</b><small>Financeiro do cliente e exclusão</small></span><span class="seta" aria-hidden="true">›</span></summary>
+      <div class="etapa-corpo">${eu?.equipe ? finClienteHTML(c) : ""}
+    ${EXC_HTML}</div></details>`;
+  box.querySelectorAll("details.etapa").forEach((d) => d.addEventListener("toggle", () => { if (d.open) { gestaoAberta[c.id] = d.dataset.etapa; box.querySelectorAll("details.etapa[open]").forEach((o) => o !== d && (o.open = false)); } }));
   box.querySelectorAll(".campo input,.campo select").forEach((e) => (e.style.cssText += ";width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:10px 12px"));
   ligarDatas(box);
   ligarAgenda(c);
@@ -1143,20 +1162,27 @@ const ESTILOS_IMG = { foto: "Fotografia realista", "3d": "Montagem 3D", ilustrac
 const PREF_ROT = { pessoas: { equipe: "Mostrar equipe e sócios", produtos: "Produtos e ambientes", misto: "Misturar" },
   tom: { consultivo: "Consultivo e próximo", tecnico: "Técnico e objetivo", descontraido: "Leve e descontraído" },
   video: { narrado: "Narrado com voz e legenda", texto: "Só texto e música", equipe: "Equipe gravando" } };
-function preferenciasHTML(c) {
-  const p = c.kit?.preferencias || {}, a = c.kit?.amostras || {}, nImg = Object.keys(a.imagens || {}).length;
-  const linha = (r, v) => v ? `<div><span style="color:var(--tx2)">${r}:</span> ${esc(v)}</div>` : "";
-  return `<h3 style="margin-top:16px">Conheça seu cliente · escolhas do cliente</h3>
-    <p style="color:var(--tx2);font-size:13px">Página onde o cliente escolhe estilo de imagem, jeito de escrever, vídeos, cores e assuntos, a partir de amostras feitas com a marca dele. As escolhas atualizam o kit e o guia de marca automaticamente.</p>
-    <div style="font-size:13px;margin:6px 0">Amostras: ${nImg ? `${nImg} imagens, ${Object.keys(a.textos || {}).length} textos e ${(a.especificos || []).length} peças com a marca do cliente` : "ainda não geradas"}</div>
+function amostrasHTML(c) {
+  const a = c.kit?.amostras || {}, nImg = Object.keys(a.imagens || {}).length;
+  return `<p style="color:var(--tx2);font-size:13px">A página <b>Conheça seu cliente</b> mostra exemplos feitos com a marca dele: 4 estilos de imagem, 3 jeitos de escrever e 5 peças prontas (carrossel, posts, story e reels), além dos modelos padrão. Gere antes de enviar o link.</p>
+    <div style="font-size:13px">${nImg ? `Prontas: ${nImg} imagens, ${Object.keys(a.textos || {}).length} textos e ${(a.especificos || []).length} peças com a marca.` : "Ainda não geradas."}</div>
     <div id="pedStatus" style="font-size:13px;margin:6px 0;color:var(--tx2)"></div>
+    <div class="acoes"><button class="btn pri" id="pedAmostras" type="button">${nImg ? "Gerar amostras de novo" : "Gerar amostras"}</button></div>`;
+}
+function respostasHTML(c) {
+  const p = c.kit?.preferencias || {}, d = c.kit?.identidade || {};
+  const linha = (r, v) => v ? `<div><span style="color:var(--tx2)">${r}:</span> ${esc(v)}</div>` : "";
+  const gostou = (p.avaliacoes || []).filter((x) => x.nota === "gostei"), nao = (p.avaliacoes || []).filter((x) => x.nota === "nao");
+  return `<p style="color:var(--tx2);font-size:13px">O que o cliente escolheu na página Conheça seu cliente. Já entrou sozinho no kit e no guia de marca: não precisa copiar nada.</p>
     ${p.salvo_em ? `<div style="background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:12px;font-size:13px;display:grid;gap:4px">
       ${linha("Respondido em", new Date(p.salvo_em).toLocaleString("pt-BR"))}${linha("Por", p.respondente)}
       ${linha("Estilo das imagens", ESTILOS_IMG[p.estilo_imagem])}${linha("Pessoas", PREF_ROT.pessoas[p.pessoas])}
       ${linha("Tom", PREF_ROT.tom[p.tom])}${linha("Vídeos", PREF_ROT.video[p.video])}
+      ${linha("Gostou de", gostou.map((x) => x.titulo).join(" · "))}${linha("Não combinou", nao.map((x) => x.titulo).join(" · "))}
       ${linha("Quer ver", p.temas_gosta)}${linha("Evitar", p.temas_evitar)}${linha("Palavras para usar", p.palavras_usar)}
       ${linha("Palavras a evitar", p.palavras_evitar)}${linha("Observações", p.obs)}</div>` : `<div style="font-size:13px;color:var(--tx2)">O cliente ainda não respondeu.</div>`}
-    <div class="acoes"><button class="btn" id="pedAmostras" type="button">${nImg ? "Gerar amostras de novo" : "Gerar amostras"}</button><button class="btn" id="prefLink" type="button">Copiar link para o cliente</button></div>`;
+    <div style="font-size:13px;margin-top:8px">${d.autorizacao === "sim" ? `✓ Uso de imagem autorizado por ${esc(d.autorizado_por || "")} em ${esc(d.autorizado_em || "")}` : `<span style="color:var(--wa)">Autorização de uso de imagem pendente</span>`}</div>
+    <div class="acoes"><button class="btn" id="prefLink" type="button">Copiar só o link da página</button></div>`;
 }
 function identidadeHTML(c, mid) {
   const d = c.kit?.identidade || {}, cores = Array.isArray(c.kit?.cores) ? c.kit.cores : [];
@@ -1164,7 +1190,6 @@ function identidadeHTML(c, mid) {
   const campo = (id, rot, v, ph = "") => `<label class="campo"><span>${rot}</span><input id="${id}" value="${esc(v || "")}" placeholder="${esc(ph)}"></label>`;
   const area = (id, rot, v) => `<label class="campo" style="grid-column:1/-1"><span>${rot}</span><textarea id="${id}" style="width:100%;min-height:70px;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;resize:vertical;outline:none">${esc(v || "")}</textarea></label>`;
   return `<div class="post" style="margin-top:14px"><div class="corpo">
-    <h3>Identidade e fotos reais · validação</h3>
     <p style="color:var(--tx2);font-size:13px">Levantamos a identidade pelo Instagram da empresa e dos sócios, com autorização de uso de imagem. As artes usam as fotos reais ativas daqui; sem foto, o robô gera imagem com IA. Com foto real, a foto fica no alto da arte e o texto vai abaixo dela; o <b>foco</b> de cada foto diz qual parte aparece (alto: rosto no topo da foto; baixo: assunto na parte de baixo).</p>
     <div class="grade" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px">
       <label class="campo"><span>Status da identidade</span><select id="idSt">${Object.entries(ID_STATUS).map(([k, t]) => `<option value="${k}" ${(d.status || "rascunho") === k ? "selected" : ""}>${t}</option>`).join("")}</select></label>
@@ -1199,7 +1224,6 @@ function identidadeHTML(c, mid) {
       ${campo("idFDesc", "Descrição das próximas fotos", "", "Ex.: Rubens, retrato com camiseta Fartec")}
       ${campo("idFGrupo", "Grupo (opcional)", "", "Ex.: sócios, equipe, escritório")}
     </div>
-    ${preferenciasHTML(c)}
     <div class="acoes"><label class="btn" style="cursor:pointer">+ Enviar fotos<input type="file" id="idFotos" accept="image/*" multiple hidden></label><button class="btn pri" id="idSalvar">Salvar identidade</button></div>
   </div></div>`;
 }
@@ -1755,8 +1779,7 @@ function avisosHTML(cid) {
   return `<div class="avisos">${lista.map((a) => `<div class="aviso-it"><span aria-hidden="true">📣</span><div><b>${esc(a.titulo)}</b>${a.texto ? `<p>${esc(a.texto)}</p>` : ""}<small>${new Date(a.criado_em).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}${eu.equipe ? (a.cliente_id ? "" : " · para todos os clientes") : ""}</small></div><button data-aviso-x="${a.id}" title="Marcar como lido" aria-label="Marcar como lido">✕</button></div>`).join("")}</div>`;
 }
 function avisoEquipeHTML(c) {
-  return `<div class="post" style="margin-top:14px"><div class="corpo"><h3>Avisos e notificações</h3>
-    <p style="color:var(--tx2);font-size:13px">O aviso aparece no topo do painel do cliente e chega como notificação no celular de quem instalou o app e ativou os lembretes. Peça nova e lembrete de prazo (20 h antes de ir ao ar, se ainda não aprovou) são automáticos.</p>
+  return `<div class="post" style="margin-top:14px"><div class="corpo">    <p style="color:var(--tx2);font-size:13px">O aviso aparece no topo do painel do cliente e chega como notificação no celular de quem instalou o app e ativou os lembretes. Peça nova e lembrete de prazo (20 h antes de ir ao ar, se ainda não aprovou) são automáticos.</p>
     <div class="grade" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px">
       <label class="campo"><span>Título (até 80 letras)</span><input id="avTit" maxlength="80" placeholder="Ex.: Posts da semana que vem já estão prontos"></label>
       <label class="campo"><span>Para</span><select id="avPara"><option value="${c.id}">Só ${esc(c.nome)}</option><option value="">Todos os clientes</option></select></label>
@@ -1787,7 +1810,6 @@ let senhaNova = {};
 function enviarClienteHTML(c, ac) {
   const email = ac[0]?.email;
   return `<div class="post" style="margin-bottom:16px;border-color:rgba(200,255,77,.35)"><div class="corpo">
-    <h3>Enviar ao cliente</h3>
     <p style="color:var(--tx2);font-size:13px">Uma mensagem só, para mandar no WhatsApp: o link da página <b>Conheça seu cliente</b> (estilo, fotos e autorização) e o acesso ao <b>app de aprovação</b>. Gere as amostras antes de mandar, para a página já abrir com os exemplos da marca dele.</p>
     ${email ? "" : `<div class="obs" style="border-color:rgba(234,179,8,.45);margin:8px 0">O cliente ainda não tem acesso ao painel. Crie aqui (vira o login do app de aprovação):
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><input id="ecEmail" type="email" placeholder="email@cliente.com.br" style="flex:1;min-width:200px;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:9px 11px;color:var(--tx)"><input id="ecNome" placeholder="Nome de quem aprova" style="flex:1;min-width:160px;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:9px 11px;color:var(--tx)"><button class="btn pri" id="ecCriar">Criar acesso</button></div></div>`}
