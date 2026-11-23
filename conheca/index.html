@@ -40,6 +40,8 @@ section > p.d{color:var(--tx2);font-size:14px;margin-bottom:16px}
 .op:has(input:focus-visible){outline:2px solid var(--ac);outline-offset:2px}
 .op img,.op video,.op .vazio{width:100%;aspect-ratio:4/5;object-fit:cover;display:block;background:var(--card2)}
 .op .vazio{display:grid;place-items:center;color:var(--tx2);font-size:13px;padding:16px;text-align:center}
+.op .eq{position:relative;display:block}.op .eq img{filter:brightness(.7)}
+.op .eq span{position:absolute;left:10px;right:10px;bottom:10px;background:rgba(0,0,0,.7);color:#fff;font-size:12px;font-weight:600;line-height:1.35;padding:8px 10px;border-radius:10px}
 .op .tx{padding:12px 14px}
 .op b{display:block;font-size:15px}.op small{display:block;color:var(--tx2);font-size:13px;margin-top:2px}
 .op .marca-ok{position:absolute;top:10px;right:10px;width:28px;height:28px;border-radius:50%;background:var(--ac);color:#0B0C0E;display:none;place-items:center;font-weight:800}
@@ -219,10 +221,18 @@ async function iniciar() {
     .replace('</span></label>', `<span class="texto">${esc(txt[v] || "Exemplo em preparação")}</span></span></label>`)).join("");
   $("#palavrasUsar").value = p.palavras_usar || ""; $("#palavrasEvitar").value = p.palavras_evitar || "";
 
-  const vid = (a.videos || {}).narrado;
-  $("#videos").innerHTML = VIDEOS.map(([v, t, d]) => opcao("video", v, t, d,
-    v === "narrado" && vid ? `<video src="${esc(vid)}" muted playsinline loop preload="metadata" controls aria-label="Exemplo de vídeo narrado"></video>` : "",
-    p.video === v)).join("");
+  const bibReels = (data.biblioteca || []).filter((m) => m.tipo === "reels" && m.video);
+  const deBib = (re) => bibReels.find((m) => re.test(`${m.titulo} ${m.estilo}`));
+  const nar = (a.videos || {}).narrado ? { video: a.videos.narrado } : deBib(/narrado/i);
+  const tex = deBib(/só texto|musica|música/i);
+  const fotoEq = fotos.find((f) => /equipe|reuni|sala|evento|implanta/i.test(f.descricao || "")) || fotos[0];
+  const midiaVideo = {
+    narrado: nar && `<video src="${esc(nar.video)}" ${nar.capa ? `poster="${esc(nar.capa)}"` : ""} muted playsinline loop preload="metadata" controls aria-label="Exemplo de vídeo narrado"></video>`,
+    texto: tex && `<video src="${esc(tex.video)}" ${tex.capa ? `poster="${esc(tex.capa)}"` : ""} muted playsinline loop preload="metadata" controls aria-label="Exemplo de vídeo só com texto e música"></video>`,
+    equipe: fotoEq ? `<span class="eq"><img src="${esc(fotoEq.url)}" alt="Foto da sua equipe" loading="lazy"><span>▶ Vocês gravam no celular, a gente edita com legenda, marca e música</span></span>`
+                   : `<span class="vazio">Vocês gravam no celular, a gente edita com legenda, marca e música</span>`,
+  };
+  $("#videos").innerHTML = VIDEOS.map(([v, t, d]) => opcao("video", v, t, d, midiaVideo[v] || "", p.video === v)).join("");
 
   const cores = (p.cores && p.cores.length ? p.cores : data.cores || []).slice(0, 4);
   $("#cores").innerHTML = cores.map((c, i) => `<label class="cor"><input type="color" value="${esc(c)}" data-cor aria-label="Cor ${i + 1}">${esc(c)}</label>`).join("");
