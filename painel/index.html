@@ -1050,7 +1050,7 @@ function renderCriado(s) {
       <div class="cli" style="cursor:default"><div><div class="n">1. Telegram de aprovação</div><p style="color:var(--tx2);font-size:13px;margin-top:4px">Envie ao cliente. Quando ele vincular, o robô começa a mandar as prévias.</p><pre class="obs" style="white-space:pre-wrap;margin-top:8px">${esc(msgTg)}</pre></div><div class="lado"><button class="btn pri" data-copiar="tg">Copiar</button></div></div>
       ${msgAc ? `<div class="cli" style="cursor:default"><div><div class="n">2. Acesso ao painel</div><p style="color:var(--tx2);font-size:13px;margin-top:4px">A senha não aparece de novo.</p><pre class="obs" style="white-space:pre-wrap;margin-top:8px">${esc(msgAc)}</pre></div><div class="lado"><button class="btn pri" data-copiar="ac">Copiar</button></div></div>` : `<div class="cli" style="cursor:default"><div><div class="n">2. Acesso ao painel</div><p style="color:var(--tx2);font-size:13px;margin-top:4px">${s.acesso ? "O e-mail já tinha login; ele entra com a senha que já usa." : "Nenhum e-mail informado. Crie depois em Acessos."}</p></div></div>`}
       <div class="cli" style="cursor:default"><div><div class="n">3. Instagram (publicação automática)</div><p style="color:var(--tx2);font-size:13px;margin-top:4px">No app <b>Lúmen Publicador</b> (developers.facebook.com): Funções do app › adicionar <b>${esc(c.instagram || "o perfil")}</b> como <b>Testador do Instagram</b>. O cliente aceita o convite no Instagram (Configurações › Apps e sites). Depois a equipe gera o token e cadastra no servidor.</p></div></div>
-      <div class="cli" style="cursor:default"><div><div class="n">4. Revisar e ativar</div><p style="color:var(--tx2);font-size:13px;margin-top:4px">Na aba <b>Gestão</b> do cliente você edita o guia, as datas e muda o status para <b>ativo</b>.</p></div><div class="lado"><button class="btn pri" id="abrirCli">Abrir cliente</button></div></div>
+      <div class="cli" style="cursor:default"><div><div class="n">4. Revisar e ativar</div><p style="color:var(--tx2);font-size:13px;margin-top:4px">Na aba <b>Gestão</b> do cliente fica o card <b>Enviar ao cliente</b>, com a mensagem pronta (página Conheça seu cliente + app de aprovação). Lá você também gera as amostras e muda o status para <b>ativo</b>.</p></div><div class="lado"><button class="btn pri" id="abrirCli">Abrir cliente</button></div></div>
     </div>`;
   $("#conteudo").querySelectorAll("[data-copiar]").forEach((b) => (b.onclick = async () => { try { await navigator.clipboard.writeText(b.dataset.copiar === "tg" ? msgTg : msgAc); toast("Copiado!"); } catch (e) { toast("Selecione e copie manualmente", true); } }));
   $("#abrirCli").onclick = () => { atual = clientes.find((x) => x.id === s.id); if (!atual) return; modo = "cliente"; aba = "implantacao"; montarSeletor(); $("#selCliente").value = String(atual.id); history.replaceState(null, "", "?cliente=" + atual.slug); render(); };
@@ -1080,6 +1080,7 @@ async function renderImplantacao() {
         ${ok(!!c.kit?.preferencias?.salvo_em)} <span class="sin">Preferências do cliente</span>
       </div></div></div>
     </div>
+    ${enviarClienteHTML(c, ac || [])}
     <div class="post"><div class="corpo">
       <div class="grade" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px">
         <label class="campo"><span>Status</span><select id="iSt">${["implantacao", "ativo", "pausado", "cancelado"].map((s) => `<option ${c.status === s ? "selected" : ""}>${s}</option>`).join("")}</select></label>
@@ -1116,6 +1117,7 @@ async function renderImplantacao() {
   ligarDatas(box);
   ligarAgenda(c);
   ligarFinCliente(c);
+ ligarEnviarCliente(c, ac || [], cod);
   ligarIdentidade(c); ligarAvisoEquipe(c);
   $("#iSalvar").onclick = async (e) => {
     e.target.disabled = true;
@@ -1777,6 +1779,55 @@ async function ligarAvisoEquipe(c) {
     e.target.disabled = false;
     if (error) return toast(error.message, true);
     toast("Aviso enviado"); $("#avTit").value = ""; $("#avTxt").value = ""; await carregar();
+  };
+}
+
+// ---------- Gestão: mensagem pronta para o cliente (Conheça + app de aprovação) ----------
+let senhaNova = {};
+function enviarClienteHTML(c, ac) {
+  const email = ac[0]?.email;
+  return `<div class="post" style="margin-bottom:16px;border-color:rgba(200,255,77,.35)"><div class="corpo">
+    <h3>Enviar ao cliente</h3>
+    <p style="color:var(--tx2);font-size:13px">Uma mensagem só, para mandar no WhatsApp: o link da página <b>Conheça seu cliente</b> (estilo, fotos e autorização) e o acesso ao <b>app de aprovação</b>. Gere as amostras antes de mandar, para a página já abrir com os exemplos da marca dele.</p>
+    ${email ? "" : `<div class="obs" style="border-color:rgba(234,179,8,.45);margin:8px 0">O cliente ainda não tem acesso ao painel. Crie aqui (vira o login do app de aprovação):
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><input id="ecEmail" type="email" placeholder="email@cliente.com.br" style="flex:1;min-width:200px;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:9px 11px;color:var(--tx)"><input id="ecNome" placeholder="Nome de quem aprova" style="flex:1;min-width:160px;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:9px 11px;color:var(--tx)"><button class="btn pri" id="ecCriar">Criar acesso</button></div></div>`}
+    <pre class="obs" id="ecMsg" style="white-space:pre-wrap;margin-top:8px;font-family:inherit;font-size:13px;color:var(--tx)">Montando a mensagem…</pre>
+    <label style="display:flex;gap:8px;align-items:center;font-size:13px;margin:8px 0;color:var(--tx2)"><input type="checkbox" id="ecTg"> Incluir também a aprovação pelo Telegram</label>
+    <div class="acoes"><button class="btn pri" id="ecCopiar">Copiar mensagem</button><a class="btn" id="ecWpp" target="_blank" rel="noopener">Abrir no WhatsApp</a>${email ? `<button class="btn" id="ecSenha">Gerar nova senha para ${esc(email)}</button>` : ""}</div>
+  </div></div>`;
+}
+async function ligarEnviarCliente(c, ac, cod) {
+  if (!$("#ecMsg")) return;
+  const { data: tok, error } = await sb.rpc("lumen_pref_link", { p_cliente: c.id });
+  const conheca = error ? "(erro ao gerar o link)" : `${location.origin}/conheca/?t=${tok}`;
+  const email = ac[0]?.email;
+  const montar = () => {
+    const senha = senhaNova[c.id];
+    const t = [`Olá! Aqui é da Lúmen 👋 Para começarmos o marketing da ${c.nome}, são só 2 passos:`, "",
+      "1️⃣ Escolha o estilo dos posts e autorize as fotos (uns 10 minutos):", conheca, "",
+      "2️⃣ Instale o app de aprovação no celular:", `${location.origin}/painel/`,
+      email ? `Entre com o e-mail ${email}` + (senha ? ` e a senha provisória ${senha} (dá para trocar depois no ícone 🔑).` : " e a senha que enviamos.") : "(acesso em criação)",
+      "Depois toque em “Instalar app” e em “Ativar lembretes”. No iPhone: abra no Safari › Compartilhar › Adicionar à Tela de Início.", "",
+      "Pronto: as peças chegam prontas no app e você só toca em Aprovar ou pede ajuste. O resto é com a gente."];
+    if ($("#ecTg").checked && cod) t.push("", `Prefere aprovar pelo Telegram? Procure @lumen_aprovacao_bot, toque em Iniciar e envie: /vincular ${cod}`);
+    return t.join("\n");
+  };
+  const atualizar = () => { const m = montar(); $("#ecMsg").textContent = m; $("#ecWpp").href = "https://wa.me/?text=" + encodeURIComponent(m); };
+  atualizar();
+  $("#ecTg").onchange = atualizar;
+  $("#ecCopiar").onclick = async () => { try { await navigator.clipboard.writeText(montar()); toast("Mensagem copiada!"); } catch (e) { toast("Selecione e copie manualmente", true); } };
+  if ($("#ecSenha")) $("#ecSenha").onclick = async () => {
+    if (!confirm(`Gerar uma nova senha provisória para ${email}? A senha antiga deixa de funcionar.`)) return;
+    const r = await chamarAcesso({ acao: "nova_senha", email }); if (!r) return;
+    senhaNova[c.id] = r.senha; atualizar(); toast("Senha nova incluída na mensagem");
+  };
+  if ($("#ecCriar")) $("#ecCriar").onclick = async (e) => {
+    const em = $("#ecEmail").value.trim().toLowerCase(); if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) return toast("E-mail inválido", true);
+    e.target.disabled = true;
+    const r = await chamarAcesso({ acao: "criar", email: em, papel: "cliente", cliente_id: c.id, nome: $("#ecNome").value.trim() || null });
+    e.target.disabled = false; if (!r) return;
+    if (r.senha) senhaNova[c.id] = r.senha;
+    toast("Acesso criado"); renderImplantacao();
   };
 }
 </script>
