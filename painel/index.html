@@ -1062,6 +1062,7 @@ async function renderImplantacao() {
         ${ok(c.kit?.identidade?.autorizacao === "sim")} <span class="sin">Autorização de imagem</span>
         ${ok((mid || []).some((m) => m.ativa && m.tipo === "foto"))} <span class="sin">Fotos reais (${(mid || []).filter((m) => m.ativa && m.tipo === "foto").length})</span>
         ${ok(c.kit?.identidade?.status === "aprovada")} <span class="sin">Identidade validada</span>
+        ${ok(!!c.kit?.preferencias?.salvo_em)} <span class="sin">Preferências do cliente</span>
       </div></div></div>
     </div>
     <div class="post"><div class="corpo">
@@ -1120,6 +1121,24 @@ async function renderImplantacao() {
 
 // ---------- identidade do cliente (kit + fotos reais) ----------
 const ID_STATUS = { rascunho: "Rascunho", em_validacao: "Em validação com o cliente", aprovada: "Aprovada", ajustar: "Ajustar" };
+const ESTILOS_IMG = { foto: "Fotografia realista", "3d": "Montagem 3D", ilustracao: "Ilustração", minimalista: "Minimalista" };
+const PREF_ROT = { pessoas: { equipe: "Mostrar equipe e sócios", produtos: "Produtos e ambientes", misto: "Misturar" },
+  tom: { consultivo: "Consultivo e próximo", tecnico: "Técnico e objetivo", descontraido: "Leve e descontraído" },
+  video: { narrado: "Narrado com voz e legenda", texto: "Só texto e música", equipe: "Equipe gravando" } };
+function preferenciasHTML(c) {
+  const p = c.kit?.preferencias || {}, a = c.kit?.amostras || {}, nImg = Object.keys(a.imagens || {}).length;
+  const linha = (r, v) => v ? `<div><span style="color:var(--tx2)">${r}:</span> ${esc(v)}</div>` : "";
+  return `<h3 style="margin-top:16px">Conheça seu cliente · escolhas do cliente</h3>
+    <p style="color:var(--tx2);font-size:13px">Página onde o cliente escolhe estilo de imagem, jeito de escrever, vídeos, cores e assuntos, a partir de amostras feitas com a marca dele. As escolhas atualizam o kit e o guia de marca automaticamente.</p>
+    <div style="font-size:13px;margin:6px 0">Amostras: ${nImg ? `${nImg} imagens e ${Object.keys(a.textos || {}).length} textos prontos` : "ainda não geradas (rodar gerar_amostras.py no robô)"}</div>
+    ${p.salvo_em ? `<div style="background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:12px;font-size:13px;display:grid;gap:4px">
+      ${linha("Respondido em", new Date(p.salvo_em).toLocaleString("pt-BR"))}${linha("Por", p.respondente)}
+      ${linha("Estilo das imagens", ESTILOS_IMG[p.estilo_imagem])}${linha("Pessoas", PREF_ROT.pessoas[p.pessoas])}
+      ${linha("Tom", PREF_ROT.tom[p.tom])}${linha("Vídeos", PREF_ROT.video[p.video])}
+      ${linha("Quer ver", p.temas_gosta)}${linha("Evitar", p.temas_evitar)}${linha("Palavras para usar", p.palavras_usar)}
+      ${linha("Palavras a evitar", p.palavras_evitar)}${linha("Observações", p.obs)}</div>` : `<div style="font-size:13px;color:var(--tx2)">O cliente ainda não respondeu.</div>`}
+    <div class="acoes"><button class="btn" id="prefLink" type="button">Copiar link para o cliente</button></div>`;
+}
 function identidadeHTML(c, mid) {
   const d = c.kit?.identidade || {}, cores = Array.isArray(c.kit?.cores) ? c.kit.cores : [];
   const fotos = mid.filter((m) => m.tipo === "foto"), logo = mid.filter((m) => m.tipo === "logo" && m.ativa).pop();
@@ -1137,6 +1156,7 @@ function identidadeHTML(c, mid) {
       ${campo("idAutPor", "Autorizado por", d.autorizado_por)}
       ${campo("idAutEm", "Data da autorização", d.autorizado_em, "aaaa-mm-dd")}
       ${campo("idCores", "Cores (hex, separadas por vírgula)", cores.join(", "), "#0F1720, #3B8BB5")}
+      <label class="campo"><span>Estilo das imagens geradas</span><select id="idEstilo">${Object.entries(ESTILOS_IMG).map(([k, t]) => `<option value="${k}" ${(c.config?.estilo_imagem || "3d") === k ? "selected" : ""}>${t}</option>`).join("")}</select></label>
       ${area("idTom", "Tom de voz", d.tom)}
       ${area("idEst", "Estilo visual", d.estilo)}
       ${area("idRes", "Restrições de imagem", d.restricoes)}
@@ -1160,6 +1180,7 @@ function identidadeHTML(c, mid) {
       ${campo("idFDesc", "Descrição das próximas fotos", "", "Ex.: Rubens, retrato com camiseta Fartec")}
       ${campo("idFGrupo", "Grupo (opcional)", "", "Ex.: sócios, equipe, escritório")}
     </div>
+    ${preferenciasHTML(c)}
     <div class="acoes"><label class="btn" style="cursor:pointer">+ Enviar fotos<input type="file" id="idFotos" accept="image/*" multiple hidden></label><button class="btn pri" id="idSalvar">Salvar identidade</button></div>
   </div></div>`;
 }
@@ -1174,14 +1195,21 @@ async function subirMidia(c, blob, ext, tipo, descricao, grupo) {
 }
 function ligarIdentidade(c) {
   const box = $("#implant"); if (!$("#idSalvar")) return;
-  box.querySelectorAll("#idSt,#idAut").forEach((e) => (e.style.cssText += ";width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:10px 12px"));
+  $("#prefLink").onclick = async () => {
+    const { data, error } = await sb.rpc("lumen_pref_link", { p_cliente: c.id });
+    if (error) return toast(error.message, true);
+    const url = `${location.origin}/conheca/?t=${data}`;
+    try { await navigator.clipboard.writeText(url); toast("Link copiado! Envie para o cliente."); } catch (e) { prompt("Copie o link para o cliente:", url); }
+  };
+  box.querySelectorAll("#idSt,#idAut,#idEstilo").forEach((e) => (e.style.cssText += ";width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:10px 12px"));
   $("#idSalvar").onclick = async (e) => {
     const cores = $("#idCores").value.split(/[,\s]+/).map((x) => x.trim()).filter((x) => /^#[0-9a-f]{3,8}$/i.test(x));
     e.target.disabled = true;
     const { error } = await sb.rpc("lumen_salvar_identidade", { p_cliente: c.id, p_dados: {
       status: $("#idSt").value, instagram_empresa: $("#idIgEmp").value.trim(), instagram_socios: $("#idIgSoc").value.trim(), kit_url: $("#idKit").value.trim(),
       autorizacao: $("#idAut").value, autorizado_por: $("#idAutPor").value.trim(), autorizado_em: $("#idAutEm").value.trim(),
-      tom: $("#idTom").value, estilo: $("#idEst").value, restricoes: $("#idRes").value, cores, fotos_reais: $("#idUsar").checked } });
+      tom: $("#idTom").value, estilo: $("#idEst").value, restricoes: $("#idRes").value, cores, fotos_reais: $("#idUsar").checked,
+      estilo_imagem: $("#idEstilo").value } });
     e.target.disabled = false;
     if (error) return toast(error.message, true);
     toast("Identidade salva!"); renderImplantacao();

@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0B0C0E">
+<title>Conheça seu cliente · Lúmen</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 124 124'%3E%3Crect x='2' y='2' width='120' height='120' rx='32' fill='%2316181C'/%3E%3Ccircle cx='62' cy='62' r='13' fill='%23C8FF4D'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--bg:#0B0C0E;--bg2:#111316;--card:#16181C;--card2:#1c1f24;--line:#2A2E35;--tx:#F2F4F0;--tx2:#A3A8A0;--ac:#C8FF4D;--er:#f87171}
+*{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none!important}
+body{font-family:Manrope,system-ui,sans-serif;background:var(--bg);color:var(--tx);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;min-height:100vh}
+button,input,select,textarea{font:inherit;color:inherit}
+.mono{font-family:"JetBrains Mono",monospace}
+.wrap{max-width:880px;margin:0 auto;padding:28px 16px 120px}
+.topo{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:28px}
+.lumen{display:flex;align-items:center;gap:10px;font-weight:800;font-size:18px;letter-spacing:-.3px}
+.lumen svg{width:34px;height:34px}.lumen i{font-style:normal;color:var(--ac)}
+.cli-logo{max-height:44px;max-width:180px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px 12px}
+h1{font-size:clamp(26px,5vw,38px);line-height:1.1;letter-spacing:-1px;font-weight:800;margin-bottom:10px}
+h1 em{font-style:normal;color:var(--ac)}
+.intro{color:var(--tx2);font-size:16px;max-width:640px}
+.passos{display:flex;gap:6px;margin:26px 0 8px;flex-wrap:wrap}
+.passos span{flex:1;min-width:40px;height:6px;border-radius:99px;background:var(--line)}
+.passos span.ok{background:var(--ac)}
+section{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:22px;margin-top:18px}
+section h2{font-size:20px;letter-spacing:-.3px;margin-bottom:4px;display:flex;gap:10px;align-items:baseline}
+section h2 .n{font-family:"JetBrains Mono",monospace;font-size:13px;color:var(--ac)}
+section > p.d{color:var(--tx2);font-size:14px;margin-bottom:16px}
+.grade{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(180px,1fr))}
+.op{position:relative;display:flex;flex-direction:column;border:2px solid var(--line);border-radius:16px;overflow:hidden;background:var(--bg2);cursor:pointer;transition:border-color .15s}
+.op:hover{border-color:#3a3f47}
+.op input{position:absolute;opacity:0;pointer-events:none}
+.op:has(input:checked){border-color:var(--ac)}
+.op:has(input:focus-visible){outline:2px solid var(--ac);outline-offset:2px}
+.op img,.op video,.op .vazio{width:100%;aspect-ratio:4/5;object-fit:cover;display:block;background:var(--card2)}
+.op .vazio{display:grid;place-items:center;color:var(--tx2);font-size:13px;padding:16px;text-align:center}
+.op .tx{padding:12px 14px}
+.op b{display:block;font-size:15px}.op small{display:block;color:var(--tx2);font-size:13px;margin-top:2px}
+.op .marca-ok{position:absolute;top:10px;right:10px;width:28px;height:28px;border-radius:50%;background:var(--ac);color:#0B0C0E;display:none;place-items:center;font-weight:800}
+.op:has(input:checked) .marca-ok{display:grid}
+.lista{display:grid;gap:10px}
+.lista .op .tx{padding:14px 16px}
+.texto{white-space:pre-line;font-size:15px;line-height:1.55;color:var(--tx);margin-top:6px}
+.fotos{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(130px,1fr))}
+.foto{position:relative;border-radius:14px;overflow:hidden;border:2px solid var(--line);background:var(--bg2)}
+.foto img{width:100%;aspect-ratio:1;object-fit:cover;display:block}
+.foto label{display:flex;gap:8px;align-items:center;padding:8px 10px;font-size:13px;color:var(--tx2);cursor:pointer}
+.foto:has(input:checked){border-color:var(--er);opacity:.55}
+.cores{display:flex;gap:14px;flex-wrap:wrap}
+.cor{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:12px;color:var(--tx2)}
+.cor input{width:64px;height:64px;border:1px solid var(--line);border-radius:14px;background:none;padding:0;cursor:pointer}
+.campo{display:block;margin-top:14px}
+.campo span{display:block;font-size:13px;color:var(--tx2);margin-bottom:6px}
+.campo textarea,.campo input{width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:12px 14px;outline:none;resize:vertical}
+.campo textarea{min-height:84px}
+.campo textarea:focus,.campo input:focus{border-color:var(--ac)}
+.rodape{position:fixed;left:0;right:0;bottom:0;background:rgba(11,12,14,.92);backdrop-filter:blur(10px);border-top:1px solid var(--line);padding:14px 16px}
+.rodape .in{max-width:880px;margin:0 auto;display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.rodape small{color:var(--tx2)}
+.btn{border:0;border-radius:999px;background:var(--ac);color:#0B0C0E;font-weight:800;padding:14px 26px;font-size:15px;cursor:pointer;min-height:48px}
+.btn:disabled{opacity:.5;cursor:default}
+.erro{color:var(--er);font-size:14px}
+.aviso{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:28px;text-align:center;margin-top:40px}
+.aviso h2{font-size:24px;margin-bottom:8px}.aviso p{color:var(--tx2)}
+.carregando{color:var(--tx2);text-align:center;margin-top:80px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topo">
+    <div class="lumen" aria-label="Lúmen Marketing Digital"><svg viewBox="0 0 124 124" aria-hidden="true"><rect x="2" y="2" width="120" height="120" rx="32" fill="#16181C" stroke="#2A2E35" stroke-width="3"/><circle cx="62" cy="62" r="13" fill="#C8FF4D"/><path d="M62 24V36M62 88V100M24 62H36M88 62H100M35 35L43 43M81 81L89 89M89 35L81 43M43 81L35 89" stroke="#C8FF4D" stroke-width="7" stroke-linecap="round"/></svg><span>lúmen<i>.</i></span></div>
+    <img id="cliLogo" class="cli-logo" alt="" hidden>
+  </div>
+
+  <div id="carregando" class="carregando">Carregando…</div>
+  <div id="invalido" class="aviso" hidden><h2>Link inválido</h2><p>Peça um novo link para a equipe da Lúmen.</p></div>
+  <div id="pronto" class="aviso" hidden><h2>Pronto, recebemos suas escolhas!</h2><p>Elas já entraram no kit de identidade da sua marca. Os próximos posts vão seguir esse jeito.<br>Se mudar de ideia, é só abrir este link de novo.</p></div>
+
+  <form id="form" hidden novalidate>
+    <h1>Vamos acertar o jeito da <em id="nomeCli"></em> nas redes</h1>
+    <p class="intro">Leva uns 3 minutos. Preparamos exemplos com a cara do seu negócio: escolha o que mais combina com vocês. Essas escolhas viram o kit de identidade que usamos em todos os posts, assim a gente acerta de primeira e você aprova mais rápido.</p>
+    <div class="passos" id="passos" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span></div>
+
+    <section data-passo="estilo">
+      <h2><span class="n">01</span>Estilo das imagens</h2>
+      <p class="d" id="temaAmostra">Qual destas imagens tem mais a cara da sua empresa?</p>
+      <div class="grade" id="estilos"></div>
+      <label class="campo"><span>Pessoas nas imagens</span></label>
+      <div class="lista" id="pessoas"></div>
+    </section>
+
+    <section data-passo="fotos" id="secFotos">
+      <h2><span class="n">02</span>Suas fotos</h2>
+      <p class="d">Estas são as fotos reais que separamos. Marque as que você <b>não</b> quer que apareçam nos posts.</p>
+      <div class="fotos" id="fotos"></div>
+    </section>
+
+    <section data-passo="tom">
+      <h2><span class="n">03</span>Jeito de escrever</h2>
+      <p class="d">É a mesma mensagem escrita de três formas. Qual soa como vocês?</p>
+      <div class="lista" id="tons"></div>
+      <label class="campo"><span>Palavras ou expressões que vocês gostam de usar (opcional)</span><input id="palavrasUsar" maxlength="600"></label>
+      <label class="campo"><span>Palavras ou expressões que não combinam com vocês (opcional)</span><input id="palavrasEvitar" maxlength="600"></label>
+    </section>
+
+    <section data-passo="video">
+      <h2><span class="n">04</span>Estilo dos vídeos</h2>
+      <p class="d">Como você prefere os Reels da sua marca?</p>
+      <div class="grade" id="videos"></div>
+    </section>
+
+    <section data-passo="cores">
+      <h2><span class="n">05</span>Cores da marca</h2>
+      <p class="d">Pegamos estas cores do seu Instagram. Toque em uma cor para ajustar, se precisar.</p>
+      <div class="cores" id="cores"></div>
+    </section>
+
+    <section data-passo="temas">
+      <h2><span class="n">06</span>Assuntos</h2>
+      <p class="d">Conte o que vocês querem mostrar e o que preferem deixar de fora.</p>
+      <label class="campo"><span>Assuntos que vocês querem ver nos posts</span><textarea id="temasGosta" maxlength="600" placeholder="Ex.: novidades dos produtos, bastidores das implantações, dicas de gestão"></textarea></label>
+      <label class="campo"><span>Assuntos ou situações a evitar</span><textarea id="temasEvitar" maxlength="600" placeholder="Ex.: falar de preço, citar clientes sem autorização"></textarea></label>
+      <label class="campo"><span>Algo mais que a gente deve saber? (opcional)</span><textarea id="obs" maxlength="600"></textarea></label>
+      <label class="campo"><span>Seu nome</span><input id="respondente" maxlength="120" autocomplete="name"></label>
+    </section>
+  </form>
+</div>
+
+<div class="rodape" id="rodape" hidden>
+  <div class="in">
+    <small id="faltam">Escolha o estilo das imagens, o jeito de escrever e o estilo dos vídeos.</small>
+    <span class="erro" id="erro" role="alert"></span>
+    <button class="btn" id="enviar" type="button">Enviar minhas escolhas</button>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = "https://wmfevnhfkgrwvernyqcf.supabase.co";
+const SUPABASE_KEY = "sb_publishable_UHvzB_OuCtbda_rGxunDXw_WGBIE6wH";
+const $ = (s, r = document) => r.querySelector(s);
+const esc = (t) => String(t ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const ESTILOS = [
+  ["foto", "Fotografia realista", "Fotos reais da equipe e imagens com cara de foto"],
+  ["3d", "Montagem 3D", "Objetos e cenas em 3D, visual moderno"],
+  ["ilustracao", "Ilustração", "Desenho moderno com as cores da marca"],
+  ["minimalista", "Minimalista", "Formas e cores da marca, sem pessoas"],
+];
+const PESSOAS = [
+  ["equipe", "Mostrar a equipe e os sócios", "Rosto de quem faz a empresa, sempre que possível"],
+  ["produtos", "Focar em produtos e ambientes", "Poucas pessoas, mais telas, produtos e lugares"],
+  ["misto", "Misturar", "Um pouco de cada"],
+];
+const TONS = [["consultivo", "Consultivo e próximo"], ["tecnico", "Técnico e objetivo"], ["descontraido", "Leve e descontraído"]];
+const VIDEOS = [
+  ["narrado", "Narrado com voz e legenda", "Uma voz conta a história e a legenda aparece na tela"],
+  ["texto", "Só texto e música", "Frases curtas na tela, sem narração"],
+  ["equipe", "Com a equipe gravando", "Vocês gravam vídeos curtos e a gente edita"],
+];
+const token = new URLSearchParams(location.search).get("t") || "";
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: false } });
+let dados = null;
+
+function opcao(nome, valor, titulo, desc, midia, marcado) {
+  return `<label class="op"><input type="radio" name="${nome}" value="${valor}" ${marcado ? "checked" : ""}>${midia || ""}
+    <span class="marca-ok" aria-hidden="true">✓</span><span class="tx"><b>${esc(titulo)}</b>${desc ? `<small>${esc(desc)}</small>` : ""}</span></label>`;
+}
+
+async function iniciar() {
+  if (token.length < 20) return mostrarInvalido();
+  const { data, error } = await sb.rpc("lumen_pref_carregar", { p_token: token });
+  if (error || !data) return mostrarInvalido();
+  dados = data;
+  const p = data.preferencias || {}, a = data.amostras || {}, img = a.imagens || {}, txt = a.textos || {};
+  $("#nomeCli").textContent = data.nome || "sua empresa";
+  if (data.logo) { $("#cliLogo").src = data.logo; $("#cliLogo").alt = "Logo " + (data.nome || ""); $("#cliLogo").hidden = false; }
+  if (a.tema) $("#temaAmostra").textContent = `Criamos a mesma imagem em quatro estilos, sobre "${a.tema}". Qual tem mais a cara da sua empresa?`;
+
+  $("#estilos").innerHTML = ESTILOS.map(([v, t, d]) => opcao("estilo", v, t, d,
+    img[v] ? `<img src="${esc(img[v])}" alt="Exemplo de imagem no estilo ${esc(t)}" loading="lazy">` : `<span class="vazio">Exemplo em preparação</span>`,
+    p.estilo_imagem === v)).join("");
+  $("#pessoas").innerHTML = PESSOAS.map(([v, t, d]) => opcao("pessoas", v, t, d, "", p.pessoas === v)).join("");
+
+  const fotos = (data.fotos || []).filter((f) => f.ativa), fora = new Set((p.fotos_fora || []).map(String));
+  if (!fotos.length) $("#secFotos").hidden = true;
+  $("#fotos").innerHTML = fotos.map((f) => `<div class="foto"><img src="${esc(f.url)}" alt="${esc(f.descricao || "Foto da empresa")}" loading="lazy">
+    <label><input type="checkbox" name="fora" value="${f.id}" ${fora.has(String(f.id)) ? "checked" : ""}> Não usar</label></div>`).join("");
+
+  $("#tons").innerHTML = TONS.map(([v, t]) => opcao("tom", v, t, "", "", p.tom === v)
+    .replace('</span></label>', `<span class="texto">${esc(txt[v] || "Exemplo em preparação")}</span></span></label>`)).join("");
+  $("#palavrasUsar").value = p.palavras_usar || ""; $("#palavrasEvitar").value = p.palavras_evitar || "";
+
+  const vid = (a.videos || {}).narrado;
+  $("#videos").innerHTML = VIDEOS.map(([v, t, d]) => opcao("video", v, t, d,
+    v === "narrado" && vid ? `<video src="${esc(vid)}" muted playsinline loop preload="metadata" controls aria-label="Exemplo de vídeo narrado"></video>` : "",
+    p.video === v)).join("");
+
+  const cores = (p.cores && p.cores.length ? p.cores : data.cores || []).slice(0, 4);
+  $("#cores").innerHTML = cores.map((c, i) => `<label class="cor"><input type="color" value="${esc(c)}" data-cor aria-label="Cor ${i + 1}">${esc(c)}</label>`).join("");
+  $("#cores").querySelectorAll("[data-cor]").forEach((i) => (i.oninput = () => (i.nextSibling.textContent = i.value.toUpperCase())));
+
+  $("#temasGosta").value = p.temas_gosta || ""; $("#temasEvitar").value = p.temas_evitar || "";
+  $("#obs").value = p.obs || ""; $("#respondente").value = p.respondente || "";
+  $("#carregando").hidden = true; $("#form").hidden = false; $("#rodape").hidden = false;
+  $("#form").addEventListener("change", progresso); progresso();
+}
+function mostrarInvalido() { $("#carregando").hidden = true; $("#invalido").hidden = false; }
+function valor(n) { return ($(`input[name="${n}"]:checked`) || {}).value || null; }
+function progresso() {
+  const feitos = [valor("estilo") && valor("pessoas"), true, valor("tom"), valor("video"), true, $("#temasGosta").value.trim()];
+  [...$("#passos").children].forEach((s, i) => s.classList.toggle("ok", !!feitos[i]));
+  const falta = [!valor("estilo") && "o estilo das imagens", !valor("tom") && "o jeito de escrever", !valor("video") && "o estilo dos vídeos"].filter(Boolean);
+  $("#faltam").textContent = falta.length ? "Falta escolher " + falta.join(", ").replace(/, ([^,]*)$/, " e $1") + "." : "Tudo certo! É só enviar.";
+}
+$("#enviar").onclick = async () => {
+  $("#erro").textContent = "";
+  if (!valor("estilo") || !valor("tom") || !valor("video")) { progresso(); $("#erro").textContent = "Faltam algumas escolhas."; return; }
+  const tom = valor("tom"), txt = ((dados.amostras || {}).textos || {})[tom] || "";
+  const escolhas = {
+    estilo_imagem: valor("estilo"), pessoas: valor("pessoas"), tom, texto_escolhido: txt, video: valor("video"),
+    palavras_usar: $("#palavrasUsar").value.trim(), palavras_evitar: $("#palavrasEvitar").value.trim(),
+    temas_gosta: $("#temasGosta").value.trim(), temas_evitar: $("#temasEvitar").value.trim(),
+    obs: $("#obs").value.trim(), respondente: $("#respondente").value.trim(),
+    cores: [...document.querySelectorAll("[data-cor]")].map((i) => i.value.toUpperCase()),
+    fotos_fora: [...document.querySelectorAll('input[name="fora"]:checked')].map((i) => i.value),
+  };
+  $("#enviar").disabled = true;
+  const { error } = await sb.rpc("lumen_pref_salvar", { p_token: token, p_escolhas: escolhas });
+  $("#enviar").disabled = false;
+  if (error) { $("#erro").textContent = "Não consegui salvar. Tente de novo em instantes."; return; }
+  $("#form").hidden = true; $("#rodape").hidden = true; $("#pronto").hidden = false; window.scrollTo(0, 0);
+};
+iniciar();
+</script>
+</body>
+</html>
